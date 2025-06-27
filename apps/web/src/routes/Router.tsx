@@ -56,6 +56,7 @@ const Router = [
           { path: 'dashboard', element: <Dashboard /> },
           { path: 'settings', element: <Settings /> },
           { path: 'users', element: <Users /> },
+          { path: 'organizations', element: <Organizations /> },
         ],
       },
     ],

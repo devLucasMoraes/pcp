@@ -1,15 +1,7 @@
 {
-  "eslint.workingDirectories": [
-    {
-      "mode": "auto"
-    }
-  ],
-  "conventionalCommits.scopes": [
-    "rota"
-  ],
   "workbench.colorCustomizations": {
-    "activityBar.background": "#2A3101",
-    "titleBar.activeBackground": "#3A4402",
-    "titleBar.activeForeground": "#F7FECE"
+    "activityBar.background": "#3E2A0E",
+    "titleBar.activeBackground": "#573A14",
+    "titleBar.activeForeground": "#FDFAF6"
   }
 }
