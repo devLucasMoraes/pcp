@@ -1,0 +1,52 @@
+// useCacheInvalidation.ts
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+
+import { ResourceKeys } from '../constants/ResourceKeys'
+import { useSocket } from './useSocket'
+
+export function useCacheInvalidation() {
+  const queryClient = useQueryClient()
+  const { subscribe } = useSocket()
+
+  useEffect(() => {
+    const unsubOrganization = subscribe(
+      'invalidateOrganizationCache',
+      (data: unknown) => {
+        const eventData = data as {
+          operation: string
+          orgSlug: string
+          organizationId: string
+        }
+
+        const { orgSlug } = eventData
+
+        queryClient.invalidateQueries({
+          queryKey: [ResourceKeys.ORGANIZATION, orgSlug],
+          refetchType: 'active',
+        })
+      },
+    )
+
+    const unsubUser = subscribe('invalidateUserCache', (data: unknown) => {
+      const eventData = data as {
+        operation: string
+        orgSlug: string
+        userId: string
+      }
+
+      const { orgSlug } = eventData
+
+      queryClient.invalidateQueries({
+        queryKey: [ResourceKeys.USER, orgSlug],
+        refetchType: 'active',
+      })
+    })
+
+    // Retorna função de limpeza para remover todos os listeners
+    return () => {
+      unsubOrganization()
+      unsubUser()
+    }
+  }, [queryClient, subscribe])
+}
