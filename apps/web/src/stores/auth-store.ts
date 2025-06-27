@@ -91,6 +91,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   logout: async () => {
     try {
+      set({ isLoading: true })
       await api.post('/sessions/logout')
     } finally {
       set({
@@ -100,6 +101,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         error: null,
       })
       localStorage.removeItem('selectedOrg')
+      set({ isLoading: false })
     }
   },
 }))
