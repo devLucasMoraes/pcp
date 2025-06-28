@@ -30,6 +30,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
   },
   MEMBER: (_, { can }) => {
     can(['create', 'get', 'update'], 'Ocorrencia')
+    can(['create', 'get', 'update'], 'Operador')
   },
   SUPER_ADMIN: (_, { can }) => {
     can('manage', 'all')
