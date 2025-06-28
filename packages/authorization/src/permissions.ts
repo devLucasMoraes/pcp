@@ -29,20 +29,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
     })
   },
   MEMBER: (_, { can }) => {
-    can(['create', 'get', 'update'], 'Categoria')
-    can(['create', 'get', 'update'], 'Insumo')
-    can(['create', 'get', 'update'], 'Setor')
-    can(['create', 'get', 'update'], 'Parceiro')
-    can(['create', 'get', 'update'], 'RequisicaoEstoque')
-    can(['create', 'get', 'update'], 'Emprestimo')
-    can(['create', 'get', 'update'], 'Fornecedora')
-    can(['create', 'get', 'update'], 'Transportadora')
-    can(['create', 'get', 'update'], 'NfeCompra')
-    can(['create', 'get', 'update'], 'Vinculo')
-    can(['get'], 'Estoque')
-  },
-  BILLING: (_, { can }) => {
-    can('manage', 'Billing')
+    can(['create', 'get', 'update'], 'Ocorrencia')
   },
   SUPER_ADMIN: (_, { can }) => {
     can('manage', 'all')

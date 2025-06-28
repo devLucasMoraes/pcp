@@ -1,9 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
+import { Apontamento } from './Apontamento'
 import { BaseAuditEntity } from './BaseAuditEntity'
+import { Tarefa } from './Tarefa'
 
-@Entity({ name: 'ordens_producao' })
-export class OrdemProducao extends BaseAuditEntity {
+@Entity({ name: 'ocorrencias' })
+export class Ocorrencia extends BaseAuditEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
@@ -12,4 +14,10 @@ export class OrdemProducao extends BaseAuditEntity {
 
   @Column({ type: 'varchar', length: 255 })
   cor!: string
+
+  @OneToMany(() => Apontamento, (apontamento) => apontamento.ocorrencia)
+  apontamentos!: Apontamento[]
+
+  @OneToMany(() => Tarefa, (tarefa) => tarefa.ocorrencia)
+  tarefas!: Tarefa[]
 }

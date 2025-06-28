@@ -6,7 +6,6 @@
     "dev": "pnpm tsx watch src/http/server.ts",
     "db:migrate": "pnpm tsx ./node_modules/typeorm/cli.js -d src/database/data-source.ts migration:run",
     "db:generate": "pnpm tsx ./node_modules/typeorm/cli.js -d src/database/data-source.ts migration:generate",
-    "env:load": "dotenv -e ../../.env --",
     "typeorm": "tsx ./node_modules/typeorm/cli.js -d src/database/data-source.ts",
     "build": "tsup",
     "start": "node dist/http/server.js"
