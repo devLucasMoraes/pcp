@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 
 import authRoutes from './auth'
+import equipamentoRoutes from './equipamento'
 import ocorrenciaRoutes from './ocorrencia'
 import operadorRoutes from './operador'
 import orgsRoutes from './orgs'
@@ -14,4 +15,5 @@ export default async function registerRoutes(app: FastifyInstance) {
   app.register(ocorrenciaRoutes, { prefix: '/api/v1' })
   app.register(operadorRoutes, { prefix: '/api/v1' })
   app.register(rotinaRoutes, { prefix: '/api/v1' })
+  app.register(equipamentoRoutes, { prefix: '/api/v1' })
 }

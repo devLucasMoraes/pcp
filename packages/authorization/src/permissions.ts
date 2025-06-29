@@ -11,7 +11,6 @@ type PermissionsByRole = (
 
 export const permissions: Record<Role, PermissionsByRole> = {
   ADMIN: (user, { can, cannot }) => {
-    console.log({ user })
     can('manage', 'all')
 
     cannot(['create', 'update', 'delete', 'get'], 'User')
@@ -32,6 +31,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
     can(['create', 'get', 'update'], 'Ocorrencia')
     can(['create', 'get', 'update'], 'Operador')
     can(['create', 'get', 'update'], 'Rotina')
+    can(['create', 'get', 'update'], 'Equipamento')
   },
   SUPER_ADMIN: (_, { can }) => {
     can('manage', 'all')

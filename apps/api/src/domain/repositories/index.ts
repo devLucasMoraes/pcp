@@ -1,3 +1,4 @@
+import { EquipamentoRepository } from './EquipamentoRepository'
 import { MemberRepository } from './MemberRepository'
 import { OcorrenciaRepository } from './OcorrenciaRepository'
 import { OperadorRepository } from './OperadorRepository'
@@ -13,6 +14,7 @@ const token = new TokenRepository()
 const ocorrencia = new OcorrenciaRepository()
 const operador = new OperadorRepository()
 const rotinaTarefas = new RotinaTarefasRepository()
+const equipamento = new EquipamentoRepository()
 
 export const repository = {
   user,
@@ -22,4 +24,5 @@ export const repository = {
   ocorrencia,
   operador,
   rotinaTarefas,
+  equipamento,
 }

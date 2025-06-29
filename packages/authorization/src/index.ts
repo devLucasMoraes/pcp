@@ -8,6 +8,7 @@ import { z } from 'zod'
 
 import { User } from './models/user'
 import { permissions } from './permissions'
+import { equipamentoSubject } from './subjects/equipamento'
 import { ocorrenciaSubject } from './subjects/ocorrencia'
 import { operadorSubject } from './subjects/operador'
 import { organizationSubject } from './subjects/organization'
@@ -24,6 +25,7 @@ const appAbility = z.union([
   ocorrenciaSubject,
   operadorSubject,
   rotinaSubject,
+  equipamentoSubject,
   z.tuple([z.literal('manage'), z.literal('all')]),
 ])
 
