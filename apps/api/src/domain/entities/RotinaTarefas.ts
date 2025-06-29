@@ -11,6 +11,8 @@ export class RotinaTarefas extends BaseAuditEntity {
   @Column({ type: 'varchar', length: 255 })
   descricao!: string
 
-  @OneToMany(() => Tarefa, (tarefa) => tarefa.rotinaTarefas)
+  @OneToMany(() => Tarefa, (tarefa) => tarefa.rotinaTarefas, {
+    cascade: true,
+  })
   tarefas!: Tarefa[]
 }

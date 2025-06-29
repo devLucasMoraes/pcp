@@ -22,7 +22,9 @@ export class Tarefa extends BaseAuditEntity {
   @JoinColumn({ name: 'ocorrencia' })
   ocorrencia!: Ocorrencia
 
-  @ManyToOne(() => RotinaTarefas, (rotina) => rotina.tarefas)
+  @ManyToOne(() => RotinaTarefas, (rotina) => rotina.tarefas, {
+    orphanedRowAction: 'soft-delete',
+  })
   @JoinColumn({ name: 'rotina_tarefas' })
   rotinaTarefas!: RotinaTarefas
 }
