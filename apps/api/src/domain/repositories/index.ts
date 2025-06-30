@@ -2,6 +2,7 @@ import { EquipamentoRepository } from './EquipamentoRepository'
 import { MemberRepository } from './MemberRepository'
 import { OcorrenciaRepository } from './OcorrenciaRepository'
 import { OperadorRepository } from './OperadorRepository'
+import { OrdemProducaoRepository } from './OrdemProducaoRepository'
 import { OrganizationRepository } from './OrganizationRepository'
 import { RotinaTarefasRepository } from './RotinaTarefasRepository'
 import { TokenRepository } from './TokenRepository'
@@ -15,6 +16,7 @@ const ocorrencia = new OcorrenciaRepository()
 const operador = new OperadorRepository()
 const rotinaTarefas = new RotinaTarefasRepository()
 const equipamento = new EquipamentoRepository()
+const ordemProducao = new OrdemProducaoRepository()
 
 export const repository = {
   user,
@@ -25,4 +27,5 @@ export const repository = {
   operador,
   rotinaTarefas,
   equipamento,
+  ordemProducao,
 }

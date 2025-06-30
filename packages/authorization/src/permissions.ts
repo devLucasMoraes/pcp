@@ -32,6 +32,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
     can(['create', 'get', 'update'], 'Operador')
     can(['create', 'get', 'update'], 'Rotina')
     can(['create', 'get', 'update'], 'Equipamento')
+    can(['create', 'get', 'update'], 'OrdemProducao')
   },
   SUPER_ADMIN: (_, { can }) => {
     can('manage', 'all')
