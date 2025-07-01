@@ -1,3 +1,4 @@
+import { ApontamentoRepository } from './ApontamentoRepository'
 import { EquipamentoRepository } from './EquipamentoRepository'
 import { MemberRepository } from './MemberRepository'
 import { OcorrenciaRepository } from './OcorrenciaRepository'
@@ -17,6 +18,7 @@ const operador = new OperadorRepository()
 const rotinaTarefas = new RotinaTarefasRepository()
 const equipamento = new EquipamentoRepository()
 const ordemProducao = new OrdemProducaoRepository()
+const apontamento = new ApontamentoRepository()
 
 export const repository = {
   user,
@@ -28,4 +30,5 @@ export const repository = {
   rotinaTarefas,
   equipamento,
   ordemProducao,
+  apontamento,
 }
