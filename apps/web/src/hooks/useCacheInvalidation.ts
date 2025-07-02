@@ -61,11 +61,30 @@ export function useCacheInvalidation() {
       },
     )
 
+    const unsubOperador = subscribe(
+      'invalidateOperadorCache',
+      (data: unknown) => {
+        const eventData = data as {
+          operation: string
+          orgSlug: string
+          operadorId: string
+        }
+
+        const { orgSlug } = eventData
+
+        queryClient.invalidateQueries({
+          queryKey: [ResourceKeys.OPERADOR, orgSlug],
+          refetchType: 'active',
+        })
+      },
+    )
+
     // Retorna função de limpeza para remover todos os listeners
     return () => {
       unsubOrganization()
       unsubUser()
       unsubOcorrencia()
+      unsubOperador()
     }
   }, [queryClient, subscribe])
 }

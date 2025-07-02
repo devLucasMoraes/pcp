@@ -13,92 +13,85 @@ import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useParams } from 'react-router'
 
-import { useOcorrenciaQueries } from '../../../hooks/queries/useOcorrenciaQueries'
+import { useOperadorQueries } from '../../../hooks/queries/useOperadorQueries'
 import {
-  CreateOcorrenciaDTO,
-  createOcorrenciaSchema,
-} from '../../../http/ocorrencia/create-ocorrencia'
-import { ListOcorrenciasResponse } from '../../../http/ocorrencia/list-ocorrencias'
+  CreateOperadorDTO,
+  createOperadorSchema,
+} from '../../../http/operador/create-operador'
+import { ListOperadoresResponse } from '../../../http/operador/list-operadores'
 import {
-  UpdateOcorrenciaDTO,
-  updateOcorrenciaSchema,
-} from '../../../http/ocorrencia/update-ocorrencia'
+  UpdateOperadorDTO,
+  updateOperadorSchema,
+} from '../../../http/operador/update-operador'
 import { useAlertStore } from '../../../stores/alert-store'
 
-interface OcorrenciaModalProps {
+interface OperadorModalProps {
   open: boolean
   onClose: () => void
   form:
     | {
-        data: ListOcorrenciasResponse
+        data: ListOperadoresResponse
         type: 'UPDATE' | 'COPY' | 'CREATE' | 'DELETE'
       }
     | undefined
 }
 
-export const OcorrenciaModal = ({
-  open,
-  onClose,
-  form,
-}: OcorrenciaModalProps) => {
+export const OperadorModal = ({ open, onClose, form }: OperadorModalProps) => {
   const { enqueueSnackbar } = useAlertStore((state) => state)
 
   const { orgSlug } = useParams()
 
   const schema =
     form?.data && form.type === 'UPDATE'
-      ? updateOcorrenciaSchema
-      : createOcorrenciaSchema
+      ? updateOperadorSchema
+      : createOperadorSchema
 
-  const { useCreate: useCreateOcorrencia, useUpdate: useUpdateOcorrencia } =
-    useOcorrenciaQueries()
+  const { useCreate: useCreateOperador, useUpdate: useUpdateOperador } =
+    useOperadorQueries()
 
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<CreateOcorrenciaDTO | UpdateOcorrenciaDTO>({
+  } = useForm<CreateOperadorDTO | UpdateOperadorDTO>({
     resolver: zodResolver(schema),
     defaultValues: {
-      descricao: '',
-      cor: '',
+      nome: '',
     },
   })
 
   useEffect(() => {
     if (!form?.data) {
       reset({
-        descricao: '',
-        cor: '',
+        nome: '',
       })
       return
     }
     const { data } = form
 
     reset({
-      descricao: data.descricao,
-      cor: data.cor,
+      nome: data.nome,
     })
   }, [form, reset])
 
-  const { mutate: createOcorrencia } = useCreateOcorrencia()
+  const { mutate: createOperador } = useCreateOperador()
 
-  const { mutate: updateOcorrencia } = useUpdateOcorrencia()
+  const { mutate: updateOperador } = useUpdateOperador()
 
-  const onSubmit = (data: CreateOcorrenciaDTO | UpdateOcorrenciaDTO) => {
+  const onSubmit = (data: CreateOperadorDTO | UpdateOperadorDTO) => {
     if (!orgSlug) {
       enqueueSnackbar('Selecione uma organização', { variant: 'error' })
       return
     }
     if (form?.data && form.type === 'UPDATE') {
-      updateOcorrencia(
+      updateOperador(
         { id: form.data.id, orgSlug, data },
         {
           onSuccess: () => {
             onClose()
             reset()
-            enqueueSnackbar('Ocorrencia atualizada com sucesso', {
+            enqueueSnackbar('Operador atualizado com sucesso', {
               variant: 'success',
             })
           },
@@ -111,13 +104,13 @@ export const OcorrenciaModal = ({
         },
       )
     } else {
-      createOcorrencia(
+      createOperador(
         { orgSlug, data },
         {
           onSuccess: () => {
             onClose()
             reset()
-            enqueueSnackbar('Ocorrencia criada com sucesso', {
+            enqueueSnackbar('Operador criado com sucesso', {
               variant: 'success',
             })
           },
@@ -143,40 +136,24 @@ export const OcorrenciaModal = ({
       component="form"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <DialogTitle>{form?.type === 'UPDATE' ? 'Editar' : 'Nova'}</DialogTitle>
+      <DialogTitle>{form?.type === 'UPDATE' ? 'Editar' : 'Novo'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
           {form?.type === 'UPDATE'
-            ? 'Preencha os campos abaixo para editar a ocorrência'
-            : 'Preencha os campos abaixo para criar uma nova ocorrência'}
+            ? 'Preencha os campos abaixo para editar o operador'
+            : 'Preencha os campos abaixo para criar um operador'}
         </DialogContentText>
         <Grid2 container spacing={2} sx={{ mt: 2 }}>
           <Grid2 size={12}>
             <Controller
-              name="descricao"
+              name="nome"
               control={control}
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Descrição"
-                  error={!!errors.descricao}
-                  helperText={errors.descricao?.message}
-                  fullWidth
-                />
-              )}
-            />
-          </Grid2>
-          <Grid2 size={12}>
-            <Controller
-              name="cor"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  type="color"
-                  label="Cor"
-                  error={!!errors.cor}
-                  helperText={errors.cor?.message}
+                  label="Nome"
+                  error={!!errors.nome}
+                  helperText={errors.nome?.message}
                   fullWidth
                 />
               )}

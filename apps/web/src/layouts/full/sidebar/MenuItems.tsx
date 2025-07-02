@@ -3,6 +3,7 @@ import {
   IconBinaryTree,
   IconLayoutDashboard,
   IconSettings,
+  IconUserCog,
   IconUsers,
 } from '@tabler/icons-react'
 import { v4 as uuidv4 } from 'uuid'
@@ -23,6 +24,12 @@ const Menuitems = [
     title: 'Ocorrências',
     icon: IconAlertHexagon,
     href: '/ocorrencias',
+  },
+  {
+    id: uuidv4(),
+    title: 'Operadores',
+    icon: IconUserCog,
+    href: '/operadores',
   },
   {
     navlabel: true,
