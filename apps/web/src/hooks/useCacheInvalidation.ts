@@ -43,10 +43,29 @@ export function useCacheInvalidation() {
       })
     })
 
+    const unsubOcorrencia = subscribe(
+      'invalidateOcorrenciaCache',
+      (data: unknown) => {
+        const eventData = data as {
+          operation: string
+          orgSlug: string
+          ocorrenciaId: string
+        }
+
+        const { orgSlug } = eventData
+
+        queryClient.invalidateQueries({
+          queryKey: [ResourceKeys.OCORRENCIA, orgSlug],
+          refetchType: 'active',
+        })
+      },
+    )
+
     // Retorna função de limpeza para remover todos os listeners
     return () => {
       unsubOrganization()
       unsubUser()
+      unsubOcorrencia()
     }
   }, [queryClient, subscribe])
 }

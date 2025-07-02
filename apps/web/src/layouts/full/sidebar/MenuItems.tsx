@@ -1,4 +1,5 @@
 import {
+  IconAlertHexagon,
   IconBinaryTree,
   IconLayoutDashboard,
   IconSettings,
@@ -11,12 +12,17 @@ const Menuitems = [
     navlabel: true,
     subheader: 'Home',
   },
-
   {
     id: uuidv4(),
     title: 'Dashboard',
     icon: IconLayoutDashboard,
     href: '/dashboard',
+  },
+  {
+    id: uuidv4(),
+    title: 'Ocorrências',
+    icon: IconAlertHexagon,
+    href: '/ocorrencias',
   },
   {
     navlabel: true,

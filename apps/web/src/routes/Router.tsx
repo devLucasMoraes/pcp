@@ -16,6 +16,9 @@ const Users = Loadable(lazy(() => import('../page/users/Users')))
 const Organizations = Loadable(
   lazy(() => import('../page/organizations/Organizations')),
 )
+const Ocorrencias = Loadable(
+  lazy(() => import('../page/ocorrencias/Ocorrencias')),
+)
 
 /* ****Public Pages***** */
 const Register = Loadable(lazy(() => import('../page/authentication/Register')))
@@ -37,6 +40,7 @@ const Router = [
           { path: '/settings', exact: true, element: <Settings /> },
           { path: '/users', exact: true, element: <Users /> },
           { path: '/organizations', exact: true, element: <Organizations /> },
+          { path: '/ocorrencias', exact: true, element: <Ocorrencias /> },
         ],
       },
     ],
@@ -57,6 +61,7 @@ const Router = [
           { path: 'settings', element: <Settings /> },
           { path: 'users', element: <Users /> },
           { path: 'organizations', element: <Organizations /> },
+          { path: 'ocorrencias', element: <Ocorrencias /> },
         ],
       },
     ],
