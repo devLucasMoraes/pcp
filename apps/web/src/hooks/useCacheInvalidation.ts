@@ -79,12 +79,28 @@ export function useCacheInvalidation() {
       },
     )
 
+    const unsubRotina = subscribe('invalidateRotinaCache', (data: unknown) => {
+      const eventData = data as {
+        operation: string
+        orgSlug: string
+        RotinaId: string
+      }
+
+      const { orgSlug } = eventData
+
+      queryClient.invalidateQueries({
+        queryKey: [ResourceKeys.ROTINA_TAREFAS, orgSlug],
+        refetchType: 'active',
+      })
+    })
+
     // Retorna função de limpeza para remover todos os listeners
     return () => {
       unsubOrganization()
       unsubUser()
       unsubOcorrencia()
       unsubOperador()
+      unsubRotina()
     }
   }, [queryClient, subscribe])
 }

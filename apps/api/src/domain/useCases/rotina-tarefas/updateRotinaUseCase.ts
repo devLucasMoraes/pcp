@@ -6,7 +6,7 @@ import { RotinaTarefas } from '@/domain/entities/RotinaTarefas'
 import { Tarefa } from '@/domain/entities/Tarefa'
 import { repository } from '@/domain/repositories'
 import { BadRequestError } from '@/http/_errors/bad-request-error'
-import { UpdateRotinaDTO } from '@/http/routes/rotina-tarefas/update-ocorrencia'
+import { UpdateRotinaDTO } from '@/http/routes/rotina-tarefas/update-rotina'
 
 export const updateRotinaUseCase = {
   async execute(

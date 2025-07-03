@@ -23,6 +23,7 @@ const Operadores = Loadable(lazy(() => import('../page/operadores/Operadores')))
 const OrdensProducao = Loadable(
   lazy(() => import('../page/ordens-producao/OrdensProducao')),
 )
+const Rotinas = Loadable(lazy(() => import('../page/rotinas/Rotinas')))
 
 /* ****Public Pages***** */
 const Register = Loadable(lazy(() => import('../page/authentication/Register')))
@@ -51,6 +52,7 @@ const Router = [
             exact: true,
             element: <OrdensProducao />,
           },
+          { path: '/rotinas', exact: true, element: <Rotinas /> },
         ],
       },
     ],
@@ -74,6 +76,7 @@ const Router = [
           { path: 'ocorrencias', element: <Ocorrencias /> },
           { path: 'operadores', element: <Operadores /> },
           { path: 'ordens-producao', element: <OrdensProducao /> },
+          { path: 'rotinas', element: <Rotinas /> },
         ],
       },
     ],

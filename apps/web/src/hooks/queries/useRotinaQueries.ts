@@ -10,8 +10,8 @@ import { AxiosError } from 'axios'
 import { ResourceKeys } from '../../constants/ResourceKeys'
 import {
   createRotina,
+  CreateRotinaDTO,
   CreateRotinaResponse,
-  CreateRotinaTarefasDTO,
 } from '../../http/rotina-tarefas/create-rotina'
 import { disableRotina } from '../../http/rotina-tarefas/disable-rotina'
 import {
@@ -29,7 +29,7 @@ import {
 import {
   updateRotina,
   UpdateRotinaDTO,
-} from '../../http/rotina-tarefas/update-ocorrencia'
+} from '../../http/rotina-tarefas/update-rotina'
 import { ErrorResponse, Page, PageParams } from '../../types'
 
 const resourceKey = ResourceKeys.ROTINA_TAREFAS
@@ -87,7 +87,7 @@ export function useRotinaQueries() {
       UseMutationOptions<
         CreateRotinaResponse,
         AxiosError<ErrorResponse>,
-        { orgSlug: string; data: CreateRotinaTarefasDTO }
+        { orgSlug: string; data: CreateRotinaDTO }
       >,
       'mutationFn'
     >,

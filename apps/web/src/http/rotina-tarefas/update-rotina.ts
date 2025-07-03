@@ -16,8 +16,8 @@ export const updateRotinaSchema = z.object({
 export type UpdateRotinaDTO = z.infer<typeof updateRotinaSchema>
 
 export async function updateRotina(
-  orgSlug: string,
   rotinaId: string,
+  orgSlug: string,
   dto: UpdateRotinaDTO,
 ) {
   await api.put(`/organizations/${orgSlug}/rotinas/${rotinaId}`, dto)

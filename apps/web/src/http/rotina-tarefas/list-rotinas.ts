@@ -13,7 +13,7 @@ export interface ListRotinasResponse {
       descricao: string
       cor: string
     }
-  }
+  }[]
 }
 export async function listRotinas(
   orgSlug: string,

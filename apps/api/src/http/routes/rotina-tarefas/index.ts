@@ -5,7 +5,7 @@ import { disableRotina } from './disable-rotina'
 import { getAllRotinas } from './get-all-rotinas'
 import { getRotina } from './get-rotina'
 import { listRotinas } from './list-rotinas'
-import { updateRotina } from './update-ocorrencia'
+import { updateRotina } from './update-rotina'
 
 export default async function (app: FastifyInstance) {
   app.register(createRotina)
