@@ -4,6 +4,7 @@ import {
   IconClipboardList,
   IconLayoutDashboard,
   IconSettings,
+  IconSubtask,
   IconUserCog,
   IconUsers,
 } from '@tabler/icons-react'
@@ -31,6 +32,12 @@ const Menuitems = [
     title: 'Operadores',
     icon: IconUserCog,
     href: '/operadores',
+  },
+  {
+    id: uuidv4(),
+    title: 'Rotinas de tarefas',
+    icon: IconSubtask,
+    href: '/rotinas',
   },
   {
     id: uuidv4(),

@@ -4,4 +4,5 @@ export enum ResourceKeys {
   OCORRENCIA = 'ocorrencias',
   OPERADOR = 'operadores',
   ORDEM_PRODUCAO = 'ordens-producao',
+  ROTINA_TAREFAS = 'rotinas',
 }
