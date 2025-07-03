@@ -1,6 +1,7 @@
 import {
   IconAlertHexagon,
   IconBinaryTree,
+  IconClipboardList,
   IconLayoutDashboard,
   IconSettings,
   IconUserCog,
@@ -30,6 +31,12 @@ const Menuitems = [
     title: 'Operadores',
     icon: IconUserCog,
     href: '/operadores',
+  },
+  {
+    id: uuidv4(),
+    title: 'Ordens de Produção',
+    icon: IconClipboardList,
+    href: '/ordens-producao',
   },
   {
     navlabel: true,

@@ -12,7 +12,7 @@ export async function disableOrdemProducao(app: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .delete(
-      '/organizations/:orgSlug/ordens-producaos/:ordemProducaoId',
+      '/organizations/:orgSlug/ordens-producao/:ordemProducaoId',
       {
         schema: {
           tags: ['ordens-producao'],
