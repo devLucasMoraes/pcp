@@ -83,7 +83,7 @@ export function useCacheInvalidation() {
       const eventData = data as {
         operation: string
         orgSlug: string
-        RotinaId: string
+        rotinaId: string
       }
 
       const { orgSlug } = eventData
@@ -94,6 +94,24 @@ export function useCacheInvalidation() {
       })
     })
 
+    const unsubEquipamento = subscribe(
+      'invalidateEquipamentoCache',
+      (data: unknown) => {
+        const eventData = data as {
+          operation: string
+          orgSlug: string
+          equipamentoId: string
+        }
+
+        const { orgSlug } = eventData
+
+        queryClient.invalidateQueries({
+          queryKey: [ResourceKeys.EQUIPAMENTO, orgSlug],
+          refetchType: 'active',
+        })
+      },
+    )
+
     // Retorna função de limpeza para remover todos os listeners
     return () => {
       unsubOrganization()
@@ -101,6 +119,7 @@ export function useCacheInvalidation() {
       unsubOcorrencia()
       unsubOperador()
       unsubRotina()
+      unsubEquipamento()
     }
   }, [queryClient, subscribe])
 }

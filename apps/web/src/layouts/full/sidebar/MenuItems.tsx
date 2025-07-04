@@ -1,5 +1,6 @@
 import {
   IconAlertHexagon,
+  IconAsset,
   IconBinaryTree,
   IconClipboardList,
   IconLayoutDashboard,
@@ -38,6 +39,12 @@ const Menuitems = [
     title: 'Rotinas de tarefas',
     icon: IconSubtask,
     href: '/rotinas',
+  },
+  {
+    id: uuidv4(),
+    title: 'Equipamentos',
+    icon: IconAsset,
+    href: '/equipamentos',
   },
   {
     id: uuidv4(),
