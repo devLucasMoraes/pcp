@@ -10,6 +10,7 @@ import { getUserPermissions } from '@/utils/get-user-permissions'
 const bodySchema = z.object({
   dataIncio: z.string(),
   dataFim: z.string(),
+  qtdeApontada: z.coerce.number(),
   ocorrenciaId: z.string().uuid(),
   operadorId: z.string().uuid(),
   equipamentoId: z.string().uuid(),

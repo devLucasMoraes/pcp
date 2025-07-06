@@ -26,6 +26,15 @@ export class Apontamento extends BaseAuditEntity {
   @Column({ type: 'numeric', precision: 10, scale: 2 })
   duracao!: number
 
+  @Column({
+    name: 'qtde_apontada',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  qtdeApontada!: number
+
   @ManyToOne(() => Ocorrencia, (ocorrencia) => ocorrencia.apontamentos)
   @JoinColumn({ name: 'ocorrencia' })
   ocorrencia!: Ocorrencia

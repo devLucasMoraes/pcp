@@ -7,6 +7,7 @@ export interface ListApontamentosResponse {
   dataIncio: string
   dataFim: string
   duracao: number
+  qtdeApontada: number
   ocorrencia: {
     id: string
     descricao: string

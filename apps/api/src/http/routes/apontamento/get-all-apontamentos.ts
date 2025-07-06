@@ -28,6 +28,7 @@ export async function getAllApontamentos(app: FastifyInstance) {
                 dataIncio: z.date(),
                 dataFim: z.date(),
                 duracao: z.coerce.number(),
+                qtdeApontada: z.coerce.number(),
                 ocorrencia: z.object({
                   id: z.string().uuid(),
                   descricao: z.string(),

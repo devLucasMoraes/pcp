@@ -7,6 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
   Grid2,
+  TextField,
 } from '@mui/material'
 import { DateTimePicker, renderTimeViewClock } from '@mui/x-date-pickers'
 import { useEffect } from 'react'
@@ -65,6 +66,7 @@ export const ApontamentoModal = ({
     defaultValues: {
       dataIncio: null as unknown as Date,
       dataFim: null as unknown as Date,
+      qtdeApontada: 0,
       ocorrenciaId: '',
       operadorId: '',
       equipamentoId: '',
@@ -77,7 +79,7 @@ export const ApontamentoModal = ({
       reset({
         dataIncio: null as unknown as Date,
         dataFim: null as unknown as Date,
-
+        qtdeApontada: 0,
         ocorrenciaId: '',
         operadorId: '',
         equipamentoId: '',
@@ -91,6 +93,7 @@ export const ApontamentoModal = ({
     reset({
       dataIncio: new Date(data.dataIncio),
       dataFim: new Date(data.dataFim),
+      qtdeApontada: data.qtdeApontada,
       ocorrenciaId: data.ocorrencia.id,
       operadorId: data.operador.id,
       equipamentoId: data.equipamento.id,
@@ -208,6 +211,24 @@ export const ApontamentoModal = ({
                     minutes: renderTimeViewClock,
                     seconds: renderTimeViewClock,
                   }}
+                />
+              )}
+            />
+          </Grid2>
+
+          <Grid2 size={12}>
+            <Controller
+              name="qtdeApontada"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  type="number"
+                  label="Quantidade"
+                  error={!!errors.qtdeApontada}
+                  helperText={errors.qtdeApontada?.message}
+                  fullWidth
+                  onChange={(e) => field.onChange(Number(e.target.value))}
                 />
               )}
             />

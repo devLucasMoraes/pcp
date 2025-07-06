@@ -138,6 +138,13 @@ const Apontamentos = () => {
       },
     },
     {
+      field: 'qtdeApontada',
+      headerName: 'Quantidade apontada',
+      minWidth: 155,
+      flex: 0.3,
+      type: 'number',
+    },
+    {
       field: 'ocorrencia',
       headerName: 'Ocorrência',
       minWidth: 155,

@@ -82,6 +82,7 @@ export const updateApontamentoUseCase = {
         dataIncio: dto.dataIncio,
         dataFim: dto.dataFim,
         duracao: duracaoMinutos,
+        qtdeApontada: dto.qtdeApontada,
         ocorrencia: { id: dto.ocorrenciaId },
         operador: { id: dto.operadorId },
         equipamento: { id: dto.equipamentoId },
