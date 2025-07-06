@@ -13,6 +13,7 @@ import { useApontamentoQueries } from '../../hooks/queries/useApontamentoQueries
 import { useCacheInvalidation } from '../../hooks/useCacheInvalidation'
 import { ListApontamentosResponse } from '../../http/apontamento/list-apontamentos'
 import { useAlertStore } from '../../stores/alert-store'
+import { formatarMinutosParaHHMM } from '../../util/time-utils'
 import { ApontamentoModal } from './components/ApontamentoModal'
 
 const Apontamentos = () => {
@@ -87,25 +88,54 @@ const Apontamentos = () => {
     {
       field: 'dataIncio',
       headerName: 'Data de Início',
-      minWidth: 155,
+      minWidth: 180,
       flex: 0.3,
-      type: 'date',
+      type: 'dateTime',
       valueGetter: (value) => (value ? new Date(value) : ''),
+      valueFormatter: (params) => {
+        if (!params) return ''
+
+        const date = new Date(params)
+        return date.toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      },
     },
     {
       field: 'dataFim',
       headerName: 'Data de Fim',
-      minWidth: 155,
+      minWidth: 180,
       flex: 0.3,
-      type: 'date',
+      type: 'dateTime',
       valueGetter: (value) => (value ? new Date(value) : ''),
+      valueFormatter: (params) => {
+        if (!params) return ''
+
+        const date = new Date(params)
+        return date.toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      },
     },
     {
       field: 'duracao',
       headerName: 'Duração',
       minWidth: 155,
       flex: 0.3,
-      type: 'number',
+      valueGetter: (_, row) => {
+        if (!row.duracao) {
+          return '00:00'
+        }
+        return formatarMinutosParaHHMM(row.duracao)
+      },
     },
     {
       field: 'ocorrencia',
@@ -145,7 +175,7 @@ const Apontamentos = () => {
     },
     {
       field: 'ordemProducao',
-      headerName: 'Ocorrência',
+      headerName: 'Ordem de Produção',
       minWidth: 155,
       flex: 0.1,
       valueGetter: (_, row) => {

@@ -7,6 +7,7 @@ import { OrdemProducao } from '@/domain/entities/OrdemProducao'
 import { repository } from '@/domain/repositories'
 import { BadRequestError } from '@/http/_errors/bad-request-error'
 import { UpdateApontamentoDTO } from '@/http/routes/apontamento/update-apontamento'
+import { calcularDuracaoEmMinutos } from '@/utils/calcular-duracao-em-minutos'
 
 export const updateApontamentoUseCase = {
   async execute(
@@ -72,10 +73,15 @@ export const updateApontamentoUseCase = {
         throw new BadRequestError('Ordem de produção não encontrado')
       }
 
+      const { duracaoMinutos } = calcularDuracaoEmMinutos(
+        dto.dataIncio,
+        dto.dataFim,
+      )
+
       manager.merge(Apontamento, existingApontamento, {
         dataIncio: dto.dataIncio,
         dataFim: dto.dataFim,
-        duracao: dto.duracao,
+        duracao: duracaoMinutos,
         ocorrencia: { id: dto.ocorrenciaId },
         operador: { id: dto.operadorId },
         equipamento: { id: dto.equipamentoId },

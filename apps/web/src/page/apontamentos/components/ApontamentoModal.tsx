@@ -7,9 +7,8 @@ import {
   DialogContentText,
   DialogTitle,
   Grid2,
-  TextField,
 } from '@mui/material'
-import { DateTimePicker } from '@mui/x-date-pickers'
+import { DateTimePicker, renderTimeViewClock } from '@mui/x-date-pickers'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useParams } from 'react-router'
@@ -66,7 +65,6 @@ export const ApontamentoModal = ({
     defaultValues: {
       dataIncio: null as unknown as Date,
       dataFim: null as unknown as Date,
-      duracao: 0,
       ocorrenciaId: '',
       operadorId: '',
       equipamentoId: '',
@@ -79,7 +77,7 @@ export const ApontamentoModal = ({
       reset({
         dataIncio: null as unknown as Date,
         dataFim: null as unknown as Date,
-        duracao: 0,
+
         ocorrenciaId: '',
         operadorId: '',
         equipamentoId: '',
@@ -93,7 +91,6 @@ export const ApontamentoModal = ({
     reset({
       dataIncio: new Date(data.dataIncio),
       dataFim: new Date(data.dataFim),
-      duracao: data.duracao,
       ocorrenciaId: data.ocorrencia.id,
       operadorId: data.operador.id,
       equipamentoId: data.equipamento.id,
@@ -182,6 +179,11 @@ export const ApontamentoModal = ({
                       helperText: errors.dataIncio?.message,
                     },
                   }}
+                  viewRenderers={{
+                    hours: renderTimeViewClock,
+                    minutes: renderTimeViewClock,
+                    seconds: renderTimeViewClock,
+                  }}
                 />
               )}
             />
@@ -201,24 +203,11 @@ export const ApontamentoModal = ({
                       helperText: errors.dataFim?.message,
                     },
                   }}
-                />
-              )}
-            />
-          </Grid2>
-
-          <Grid2 size={3}>
-            <Controller
-              name="duracao"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  type="number"
-                  label="Duração"
-                  error={!!errors.duracao}
-                  helperText={errors.duracao?.message}
-                  fullWidth
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  viewRenderers={{
+                    hours: renderTimeViewClock,
+                    minutes: renderTimeViewClock,
+                    seconds: renderTimeViewClock,
+                  }}
                 />
               )}
             />

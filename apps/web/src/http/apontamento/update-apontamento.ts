@@ -5,7 +5,6 @@ import { api } from '../api/axios'
 export const updateApontamentoSchema = z.object({
   dataIncio: z.date(),
   dataFim: z.date(),
-  duracao: z.coerce.number(),
   ocorrenciaId: z.string().uuid(),
   operadorId: z.string().uuid(),
   equipamentoId: z.string().uuid(),

@@ -7,6 +7,7 @@ import { OrdemProducao } from '@/domain/entities/OrdemProducao'
 import { repository } from '@/domain/repositories'
 import { BadRequestError } from '@/http/_errors/bad-request-error'
 import { CreateApontamentoDTO } from '@/http/routes/apontamento/create-apontamento'
+import { calcularDuracaoEmMinutos } from '@/utils/calcular-duracao-em-minutos'
 
 export const createApontamentoUseCase = {
   async execute(
@@ -62,10 +63,15 @@ export const createApontamentoUseCase = {
         throw new BadRequestError('Ordem de produção não encontrado')
       }
 
+      const { duracaoMinutos } = calcularDuracaoEmMinutos(
+        dto.dataIncio,
+        dto.dataFim,
+      )
+
       const apontamentoToSave = repository.apontamento.create({
         dataIncio: dto.dataIncio,
         dataFim: dto.dataFim,
-        duracao: dto.duracao,
+        duracao: duracaoMinutos,
         ocorrencia: { id: dto.ocorrenciaId },
         operador: { id: dto.operadorId },
         equipamento: { id: dto.equipamentoId },
