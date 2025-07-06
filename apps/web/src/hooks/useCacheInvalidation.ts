@@ -112,6 +112,24 @@ export function useCacheInvalidation() {
       },
     )
 
+    const unsubApontamento = subscribe(
+      'invalidateApontamentoCache',
+      (data: unknown) => {
+        const eventData = data as {
+          operation: string
+          orgSlug: string
+          apontamentoId: string
+        }
+
+        const { orgSlug } = eventData
+
+        queryClient.invalidateQueries({
+          queryKey: [ResourceKeys.APONTAMENTO, orgSlug],
+          refetchType: 'active',
+        })
+      },
+    )
+
     // Retorna função de limpeza para remover todos os listeners
     return () => {
       unsubOrganization()
@@ -120,6 +138,7 @@ export function useCacheInvalidation() {
       unsubOperador()
       unsubRotina()
       unsubEquipamento()
+      unsubApontamento()
     }
   }, [queryClient, subscribe])
 }

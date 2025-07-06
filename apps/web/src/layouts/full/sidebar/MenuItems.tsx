@@ -4,6 +4,7 @@ import {
   IconBinaryTree,
   IconClipboardList,
   IconLayoutDashboard,
+  IconPencilCheck,
   IconSettings,
   IconSubtask,
   IconUserCog,
@@ -21,6 +22,12 @@ const Menuitems = [
     title: 'Dashboard',
     icon: IconLayoutDashboard,
     href: '/dashboard',
+  },
+  {
+    id: uuidv4(),
+    title: 'Apontamentos',
+    icon: IconPencilCheck,
+    href: '/apontamentos',
   },
   {
     id: uuidv4(),

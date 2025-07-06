@@ -19,8 +19,17 @@ export class ApontamentoRepository extends BaseRepository<Apontamento> {
     organizationId: string,
     pageRequest?: PageRequest,
   ): Promise<Page<Apontamento>> {
-    return this.paginate(pageRequest, {
-      organizationId,
-    })
+    return this.paginate(
+      pageRequest,
+      {
+        organizationId,
+      },
+      {
+        equipamento: true,
+        ocorrencia: true,
+        operador: true,
+        ordemProducao: true,
+      },
+    )
   }
 }
