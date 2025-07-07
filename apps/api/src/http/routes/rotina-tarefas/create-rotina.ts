@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 
+import { TarefaTipo } from '@/domain/entities/TarefaTipo'
 import { createRotinaUseCase } from '@/domain/useCases/rotina-tarefas/createRotinaUseCase'
 import { ForbiddenError } from '@/http/_errors/Forbidden-error'
 import { auth } from '@/http/middleware/auth'
@@ -11,7 +12,7 @@ const bodySchema = z.object({
   descricao: z.string(),
   tarefas: z.array(
     z.object({
-      tipo: z.string(),
+      tipo: z.nativeEnum(TarefaTipo),
       ocorrenciaId: z.string().uuid(),
     }),
   ),

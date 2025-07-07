@@ -86,7 +86,7 @@ const Apontamentos = () => {
 
   const columns: GridColDef<ListApontamentosResponse>[] = [
     {
-      field: 'dataIncio',
+      field: 'dataInicio',
       headerName: 'Data de Início',
       minWidth: 180,
       flex: 0.3,

@@ -7,6 +7,10 @@ import {
 } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 
+import {
+  getTotaisProducao,
+  GetTotaisProducaoResponse,
+} from '../..//http/apontamento/get-totais-producao'
 import { ResourceKeys } from '../../constants/ResourceKeys'
 import {
   createApontamento,
@@ -62,6 +66,24 @@ export function useApontamentoQueries() {
       ...queryOptions,
       queryKey: [resourceKey, orgSlug],
       queryFn: () => getAllApontamentos(orgSlug),
+    })
+  }
+
+  const useTotaisProducao = (
+    orgSlug: string,
+    equipamentoId: string,
+    dataInicio: Date,
+    dataFim: Date,
+    queryOptions?: Omit<
+      UseQueryOptions<GetTotaisProducaoResponse, AxiosError<ErrorResponse>>,
+      'queryKey' | 'queryFn'
+    >,
+  ) => {
+    return useQuery({
+      ...queryOptions,
+      queryKey: [resourceKey, orgSlug, equipamentoId, dataInicio, dataFim],
+      queryFn: () =>
+        getTotaisProducao(orgSlug, equipamentoId, dataInicio, dataFim),
     })
   }
 
@@ -162,5 +184,6 @@ export function useApontamentoQueries() {
     useCreate,
     useUpdate,
     useDisable,
+    useTotaisProducao,
   }
 }

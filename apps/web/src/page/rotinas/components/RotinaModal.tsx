@@ -11,6 +11,7 @@ import {
   Divider,
   Grid2,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -21,6 +22,8 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useParams } from 'react-router'
 
 import { OcorrenciaAutoComplete } from '../../../components/shared/autocompletes/OcorrenciaAutoComplete'
+import { tarefaTipo } from '../../../constants'
+import { TarefaTipo } from '../../../constants/TarefaTipo'
 import { useRotinaQueries } from '../../../hooks/queries/useRotinaQueries'
 import { createRotinaSchema } from '../../../http/rotina-tarefas/create-rotina'
 import { ListRotinasResponse } from '../../../http/rotina-tarefas/list-rotinas'
@@ -87,7 +90,7 @@ export const RotinaModal = ({
       descricao: data.descricao,
       tarefas: data.tarefas.map((item) => ({
         id: item.id,
-        tipo: item.tipo,
+        tipo: item.tipo as TarefaTipo,
         ocorrenciaId: item.ocorrencia.id,
       })),
     })
@@ -142,7 +145,7 @@ export const RotinaModal = ({
     prepend({
       id: null,
       ocorrenciaId: '',
-      tipo: '',
+      tipo: '' as TarefaTipo,
     })
   }
 
@@ -211,7 +214,14 @@ export const RotinaModal = ({
                       helperText={errors.tarefas?.[index]?.tipo?.message}
                       fullWidth
                       size="small"
-                    />
+                      select
+                    >
+                      {tarefaTipo.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
                   )}
                 />
               </Grid2>

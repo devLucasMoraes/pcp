@@ -1,0 +1,5 @@
+export enum TarefaTipo {
+  IMPRODUTIVO = 'IMPRODUTIVO',
+  PRODUTIVO = 'PRODUTIVO',
+  INTERVALO = 'INTERVALO',
+}

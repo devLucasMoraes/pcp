@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { api } from '../api/axios'
 
 export const createApontamentoSchema = z.object({
-  dataIncio: z.date(),
+  dataInicio: z.date(),
   dataFim: z.date(),
   qtdeApontada: z.coerce.number(),
   ocorrenciaId: z.string().uuid(),

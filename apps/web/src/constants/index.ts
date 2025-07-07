@@ -8,3 +8,18 @@ export const role = [
     label: 'Administrador',
   },
 ]
+
+export const tarefaTipo = [
+  {
+    value: 'IMPRODUTIVO',
+    label: 'Improdutivo',
+  },
+  {
+    value: 'PRODUTIVO',
+    label: 'Produtivo',
+  },
+  {
+    value: 'INTERVALO',
+    label: 'Intervalo',
+  },
+]

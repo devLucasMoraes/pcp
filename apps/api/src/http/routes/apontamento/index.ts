@@ -4,6 +4,7 @@ import { createApontamento } from './create-apontamento'
 import { disableApontamento } from './disable-apontamento'
 import { getAllApontamentos } from './get-all-apontamentos'
 import { getApontamento } from './get-apontamento'
+import { getTotaisProducao } from './get-totais-producao'
 import { listApontamentos } from './list-apontamentos'
 import { updateApontamento } from './update-apontamento'
 
@@ -14,4 +15,5 @@ export default async function (app: FastifyInstance) {
   app.register(getApontamento)
   app.register(listApontamentos)
   app.register(updateApontamento)
+  app.register(getTotaisProducao)
 }

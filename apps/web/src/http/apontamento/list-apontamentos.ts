@@ -4,7 +4,7 @@ import { api } from '../api/axios'
 
 export interface ListApontamentosResponse {
   id: string
-  dataIncio: string
+  dataInicio: string
   dataFim: string
   duracao: number
   qtdeApontada: number

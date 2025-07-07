@@ -2,7 +2,7 @@ import { api } from '../api/axios'
 
 export interface GetApontamentoResponse {
   id: string
-  dataIncio: string
+  dataInicio: string
   dataFim: string
   duracao: number
   qtdeApontada: number

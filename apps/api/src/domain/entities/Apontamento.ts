@@ -17,8 +17,8 @@ export class Apontamento extends BaseAuditEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Column({ name: 'data_incio', type: 'timestamp' })
-  dataIncio!: Date
+  @Column({ name: 'data_inicio', type: 'timestamp' })
+  dataInicio!: Date
 
   @Column({ name: 'data_fim', type: 'timestamp' })
   dataFim!: Date

@@ -64,12 +64,12 @@ export const createApontamentoUseCase = {
       }
 
       const { duracaoMinutos } = calcularDuracaoEmMinutos(
-        dto.dataIncio,
+        dto.dataInicio,
         dto.dataFim,
       )
 
       const apontamentoToSave = repository.apontamento.create({
-        dataIncio: dto.dataIncio,
+        dataInicio: dto.dataInicio,
         dataFim: dto.dataFim,
         duracao: duracaoMinutos,
         qtdeApontada: dto.qtdeApontada,

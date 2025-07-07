@@ -8,7 +8,7 @@ import { auth } from '@/http/middleware/auth'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 
 const bodySchema = z.object({
-  dataIncio: z.string(),
+  dataInicio: z.string(),
   dataFim: z.string(),
   qtdeApontada: z.coerce.number(),
   ocorrenciaId: z.string().uuid(),

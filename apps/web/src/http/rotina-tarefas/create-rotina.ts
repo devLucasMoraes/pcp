@@ -1,12 +1,13 @@
 import { z } from 'zod'
 
+import { TarefaTipo } from '../../constants/TarefaTipo'
 import { api } from '../api/axios'
 
 export const createRotinaSchema = z.object({
   descricao: z.string(),
   tarefas: z.array(
     z.object({
-      tipo: z.string(),
+      tipo: z.nativeEnum(TarefaTipo),
       ocorrenciaId: z.string().uuid(),
     }),
   ),

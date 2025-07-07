@@ -64,7 +64,7 @@ export const ApontamentoModal = ({
   } = useForm<CreateApontamentoDTO | UpdateApontamentoDTO>({
     resolver: zodResolver(schema),
     defaultValues: {
-      dataIncio: null as unknown as Date,
+      dataInicio: null as unknown as Date,
       dataFim: null as unknown as Date,
       qtdeApontada: 0,
       ocorrenciaId: '',
@@ -77,7 +77,7 @@ export const ApontamentoModal = ({
   useEffect(() => {
     if (!form?.data) {
       reset({
-        dataIncio: null as unknown as Date,
+        dataInicio: null as unknown as Date,
         dataFim: null as unknown as Date,
         qtdeApontada: 0,
         ocorrenciaId: '',
@@ -91,7 +91,7 @@ export const ApontamentoModal = ({
     const { data } = form
 
     reset({
-      dataIncio: new Date(data.dataIncio),
+      dataInicio: new Date(data.dataInicio),
       dataFim: new Date(data.dataFim),
       qtdeApontada: data.qtdeApontada,
       ocorrenciaId: data.ocorrencia.id,
@@ -170,7 +170,7 @@ export const ApontamentoModal = ({
         <Grid2 container spacing={2} sx={{ mt: 2 }}>
           <Grid2 size="auto">
             <Controller
-              name="dataIncio"
+              name="dataInicio"
               control={control}
               render={({ field }) => (
                 <DateTimePicker
@@ -178,8 +178,8 @@ export const ApontamentoModal = ({
                   label="Data de início"
                   slotProps={{
                     textField: {
-                      error: !!errors.dataIncio,
-                      helperText: errors.dataIncio?.message,
+                      error: !!errors.dataInicio,
+                      helperText: errors.dataInicio?.message,
                     },
                   }}
                   viewRenderers={{

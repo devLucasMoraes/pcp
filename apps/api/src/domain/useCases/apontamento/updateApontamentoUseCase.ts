@@ -74,12 +74,12 @@ export const updateApontamentoUseCase = {
       }
 
       const { duracaoMinutos } = calcularDuracaoEmMinutos(
-        dto.dataIncio,
+        dto.dataInicio,
         dto.dataFim,
       )
 
       manager.merge(Apontamento, existingApontamento, {
-        dataIncio: dto.dataIncio,
+        dataInicio: dto.dataInicio,
         dataFim: dto.dataFim,
         duracao: duracaoMinutos,
         qtdeApontada: dto.qtdeApontada,

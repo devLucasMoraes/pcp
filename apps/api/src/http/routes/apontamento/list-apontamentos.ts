@@ -33,7 +33,7 @@ export async function listApontamentos(app: FastifyInstance) {
               content: z.array(
                 z.object({
                   id: z.string().uuid(),
-                  dataIncio: z.date(),
+                  dataInicio: z.date(),
                   dataFim: z.date(),
                   duracao: z.coerce.number(),
                   qtdeApontada: z.coerce.number(),
