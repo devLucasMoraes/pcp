@@ -4,6 +4,7 @@ export interface GetTotaisProducaoResponse {
   tempoProdutivo: number
   tempoImprodutivo: number
   tempoIntervalo: number
+  tempoPreparacao: number
   tempoTotal: number
   qtdeTotal: number
 }

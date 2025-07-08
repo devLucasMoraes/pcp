@@ -55,6 +55,7 @@ export const getTotaisProducaoUseCase = {
     console.log({ apontamentos })
 
     // Inicializa acumuladores
+    let tempoPreparacao = 0
     let tempoProdutivo = 0
     let tempoImprodutivo = 0
     let tempoIntervalo = 0
@@ -82,15 +83,19 @@ export const getTotaisProducaoUseCase = {
         case TarefaTipo.INTERVALO:
           tempoIntervalo += duracao
           break
+        case TarefaTipo.PREPARACAO:
+          tempoPreparacao += duracao
+          break
         // Intervalo é ignorado
       }
     })
 
     return {
+      tempoPreparacao,
       tempoProdutivo,
       tempoImprodutivo,
       tempoIntervalo,
-      tempoTotal: tempoProdutivo + tempoImprodutivo + tempoIntervalo,
+      tempoTotal: tempoProdutivo + tempoImprodutivo + tempoPreparacao,
       qtdeTotal,
     }
   },

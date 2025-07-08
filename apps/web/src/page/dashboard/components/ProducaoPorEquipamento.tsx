@@ -12,9 +12,11 @@ import {
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import {
+  IconCalendarPause,
   IconChevronLeft,
   IconChevronRight,
   IconClock,
+  IconMinus,
   IconTrendingDown,
   IconTrendingUp,
 } from '@tabler/icons-react'
@@ -24,17 +26,14 @@ import { useParams } from 'react-router'
 
 import DashboardCard from '../../../components/cards/DashboardCard'
 import { useApontamentoQueries } from '../../../hooks/queries/useApontamentoQueries'
-
-type ProducaoPorEquipamentoCardProps = {
-  equipamento: {
-    id: string
-    nome: string
-  }
-}
+import { GetAllEquipamentosResponse } from '../../../http/equipamento/get-all-equipamentos'
+import { formatarMinutosParaHHMM } from '../../../util/time-utils'
 
 export const ProducaoPorEquipamento = ({
   equipamento,
-}: ProducaoPorEquipamentoCardProps) => {
+}: {
+  equipamento: GetAllEquipamentosResponse
+}) => {
   const theme = useTheme()
   const { orgSlug } = useParams()
   const [startDate, setStartDate] = useState<Date>(new Date())
@@ -46,8 +45,7 @@ export const ProducaoPorEquipamento = ({
     data: totais,
     isLoading,
     isError,
-    refetch,
-  } = useTotaisProducao(orgSlug, equipamento.id, startDate, endDate)
+  } = useTotaisProducao(orgSlug!, equipamento.id, startDate, endDate)
 
   const handlePrevDay = () => {
     const newStart = subDays(startDate, 1)
@@ -68,15 +66,15 @@ export const ProducaoPorEquipamento = ({
 
   const getEfficiencyColor = () => {
     const efficiency = getEfficiency()
-    if (efficiency >= 80) return theme.palette.success.main
-    if (efficiency >= 60) return theme.palette.warning.main
+    if (efficiency >= 90) return theme.palette.success.main
+    if (efficiency >= 80) return theme.palette.warning.main
     return theme.palette.error.main
   }
 
   return (
     <DashboardCard
       title={equipamento.nome}
-      subtitle="Produção em Tempo Real"
+      subtitle="Eficiência de Produção"
       action={
         totais && (
           <Chip
@@ -104,119 +102,160 @@ export const ProducaoPorEquipamento = ({
           sx={{
             backgroundColor: alpha(theme.palette.primary.main, 0.05),
             borderRadius: 2,
-            p: 2,
+            p: 1,
             mb: 3,
           }}
         >
-          <Grid2 container alignItems="center" spacing={2}>
-            <Grid2 size="auto">
-              <IconButton
-                onClick={handlePrevDay}
-                color="primary"
-                size="small"
-                sx={{
-                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.2),
-                  },
-                }}
-              >
-                <IconChevronLeft size={20} />
-              </IconButton>
-            </Grid2>
-
-            <Grid2 size="grow">
-              <Stack direction="row" spacing={1} justifyContent="center">
-                <DatePicker
-                  label="Data Início"
-                  value={startDate}
-                  onChange={(newValue) => newValue && setStartDate(newValue)}
-                  format="dd/MM/yyyy"
-                  slotProps={{ textField: { size: 'small' } }}
-                />
-                <DatePicker
-                  label="Data Fim"
-                  value={endDate}
-                  onChange={(newValue) => newValue && setEndDate(newValue)}
-                  format="dd/MM/yyyy"
-                  slotProps={{ textField: { size: 'small' } }}
-                />
-              </Stack>
-            </Grid2>
-
-            <Grid2 size="auto">
-              <IconButton
-                onClick={handleNextDay}
-                color="primary"
-                size="small"
-                sx={{
-                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.2),
-                  },
-                }}
-              >
-                <IconChevronRight size={20} />
-              </IconButton>
-            </Grid2>
-          </Grid2>
+          <Stack direction="row" spacing={1}>
+            <DatePicker
+              label="Data Início"
+              value={startDate}
+              onChange={(newValue) => newValue && setStartDate(newValue)}
+              slotProps={{ textField: { size: 'small' } }}
+            />
+            <DatePicker
+              label="Data Fim"
+              value={endDate}
+              onChange={(newValue) => newValue && setEndDate(newValue)}
+              slotProps={{ textField: { size: 'small' } }}
+            />
+          </Stack>
         </Box>
 
         {/* Indicador Principal de Produção */}
-        <Box display="flex" justifyContent="center" alignItems="center" mb={3}>
-          {isLoading ? (
-            <Box textAlign="center">
-              <CircularProgress size={80} thickness={4} />
-              <Typography variant="body2" color="text.secondary" mt={2}>
-                Carregando dados...
-              </Typography>
-            </Box>
-          ) : isError ? (
-            <Box textAlign="center">
-              <Typography color="error" variant="h6" mb={1}>
-                Erro ao carregar dados
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Verifique sua conexão e tente novamente
-              </Typography>
-            </Box>
-          ) : (
-            <Box
+        <Grid2 container alignItems="center" spacing={2}>
+          <Grid2 size="auto">
+            <IconButton
+              onClick={handlePrevDay}
+              color="primary"
+              size="small"
               sx={{
-                width: 120,
-                height: 120,
-                borderRadius: '50%',
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                border: `3px solid ${theme.palette.primary.main}`,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                },
               }}
             >
-              <Typography variant="h4" fontWeight={700} color="primary">
-                {totais?.qtdeTotal.toFixed(2) || '0.00'}
-              </Typography>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                fontWeight={500}
-              >
-                unidades
-              </Typography>
+              <IconChevronLeft size={20} />
+            </IconButton>
+          </Grid2>
+
+          <Grid2 size="grow">
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              mb={3}
+            >
+              {isLoading ? (
+                <Box textAlign="center">
+                  <CircularProgress size={80} thickness={4} />
+                  <Typography variant="body2" color="text.secondary" mt={2}>
+                    Carregando dados...
+                  </Typography>
+                </Box>
+              ) : isError ? (
+                <Box textAlign="center">
+                  <Typography color="error" variant="h6" mb={1}>
+                    Erro ao carregar dados
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Verifique sua conexão e tente novamente
+                  </Typography>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    width: 180,
+                    height: 180,
+                    borderRadius: '50%',
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    border: `3px solid ${theme.palette.primary.main}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography variant="h2" fontWeight={800} color="primary">
+                    {totais?.qtdeTotal || '0'}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    fontWeight={500}
+                  >
+                    unidades
+                  </Typography>
+                </Box>
+              )}
             </Box>
-          )}
-        </Box>
+          </Grid2>
+
+          <Grid2 size="auto">
+            <IconButton
+              onClick={handleNextDay}
+              color="primary"
+              size="small"
+              sx={{
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                },
+              }}
+            >
+              <IconChevronRight size={20} />
+            </IconButton>
+          </Grid2>
+        </Grid2>
 
         <Divider sx={{ mb: 3 }} />
 
         {/* Estatísticas de Tempo */}
         <Grid2 container spacing={2}>
-          <Grid2 size={{ xs: 4 }}>
+          <Grid2 size={{ xs: 12 }}>
             <Box
               sx={{
                 textAlign: 'center',
-                p: 2,
+                p: 1,
+                backgroundColor: alpha(theme.palette.warning.main, 0.1),
+                border: `2px solid ${alpha(theme.palette.warning.main, 0.2)}`,
+                borderRadius: 2,
+              }}
+            >
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="center"
+                spacing={1}
+              >
+                <IconMinus size={16} color={theme.palette.warning.main} />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.warning.main,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Preparação
+                </Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ color: theme.palette.warning.main }}
+                >
+                  {formatarMinutosParaHHMM(totais?.tempoPreparacao || 0)}h
+                </Typography>
+              </Stack>
+            </Box>
+          </Grid2>
+
+          <Grid2 size={{ xs: 12 }}>
+            <Box
+              sx={{
+                textAlign: 'center',
+                p: 1,
                 backgroundColor: alpha(theme.palette.success.main, 0.1),
                 border: `2px solid ${alpha(theme.palette.success.main, 0.2)}`,
                 borderRadius: 2,
@@ -227,7 +266,6 @@ export const ProducaoPorEquipamento = ({
                 alignItems="center"
                 justifyContent="center"
                 spacing={1}
-                mb={1}
               >
                 <IconTrendingUp size={16} color={theme.palette.success.main} />
                 <Typography
@@ -240,22 +278,22 @@ export const ProducaoPorEquipamento = ({
                 >
                   Produtivo
                 </Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ color: theme.palette.success.main }}
+                >
+                  {formatarMinutosParaHHMM(totais?.tempoProdutivo || 0)}h
+                </Typography>
               </Stack>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                sx={{ color: theme.palette.success.main }}
-              >
-                {totais?.tempoProdutivo.toFixed(2) || '0.00'}h
-              </Typography>
             </Box>
           </Grid2>
 
-          <Grid2 size={{ xs: 4 }}>
+          <Grid2 size={{ xs: 12 }}>
             <Box
               sx={{
                 textAlign: 'center',
-                p: 2,
+                p: 1,
                 backgroundColor: alpha(theme.palette.error.main, 0.1),
                 border: `2px solid ${alpha(theme.palette.error.main, 0.2)}`,
                 borderRadius: 2,
@@ -266,7 +304,6 @@ export const ProducaoPorEquipamento = ({
                 alignItems="center"
                 justifyContent="center"
                 spacing={1}
-                mb={1}
               >
                 <IconTrendingDown size={16} color={theme.palette.error.main} />
                 <Typography
@@ -279,22 +316,63 @@ export const ProducaoPorEquipamento = ({
                 >
                   Improdutivo
                 </Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ color: theme.palette.error.main }}
+                >
+                  {formatarMinutosParaHHMM(totais?.tempoImprodutivo || 0)}h
+                </Typography>
               </Stack>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                sx={{ color: theme.palette.error.main }}
-              >
-                {totais?.tempoImprodutivo.toFixed(2) || '0.00'}h
-              </Typography>
             </Box>
           </Grid2>
 
-          <Grid2 size={{ xs: 4 }}>
+          <Grid2 size={{ xs: 12 }}>
             <Box
               sx={{
                 textAlign: 'center',
-                p: 2,
+                p: 1,
+                backgroundColor: alpha(theme.palette.secondary.main, 0.1),
+                border: `2px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+                borderRadius: 2,
+              }}
+            >
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="center"
+                spacing={1}
+              >
+                <IconCalendarPause
+                  size={16}
+                  color={theme.palette.secondary.main}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.secondary.main,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Intervalos
+                </Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ color: theme.palette.secondary.main }}
+                >
+                  {formatarMinutosParaHHMM(totais?.tempoIntervalo || 0)}h
+                </Typography>
+              </Stack>
+            </Box>
+          </Grid2>
+
+          <Grid2 size={{ xs: 12 }}>
+            <Box
+              sx={{
+                textAlign: 'center',
+                p: 1,
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
                 border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                 borderRadius: 2,
@@ -305,7 +383,6 @@ export const ProducaoPorEquipamento = ({
                 alignItems="center"
                 justifyContent="center"
                 spacing={1}
-                mb={1}
               >
                 <IconClock size={16} color={theme.palette.primary.main} />
                 <Typography
@@ -318,14 +395,14 @@ export const ProducaoPorEquipamento = ({
                 >
                   Total
                 </Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ color: theme.palette.primary.main }}
+                >
+                  {formatarMinutosParaHHMM(totais?.tempoTotal || 0)}h
+                </Typography>
               </Stack>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                sx={{ color: theme.palette.primary.main }}
-              >
-                {totais?.tempoTotal.toFixed(2) || '0.00'}h
-              </Typography>
             </Box>
           </Grid2>
         </Grid2>

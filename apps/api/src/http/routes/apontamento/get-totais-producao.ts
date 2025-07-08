@@ -27,6 +27,7 @@ export async function getTotaisProducao(app: FastifyInstance) {
           }),
           response: {
             200: z.object({
+              tempoPreparacao: z.coerce.number(),
               tempoProdutivo: z.coerce.number(),
               tempoImprodutivo: z.coerce.number(),
               tempoIntervalo: z.coerce.number(),
