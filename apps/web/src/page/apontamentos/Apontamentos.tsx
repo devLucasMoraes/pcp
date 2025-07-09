@@ -1,4 +1,4 @@
-import { Button, IconButton } from '@mui/material'
+import { Button, IconButton, Input, Stack } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { IconBan, IconCopy, IconEdit } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -11,6 +11,7 @@ import { ConfirmationModal } from '../../components/shared/ConfirmationModal'
 import { ServerDataTable } from '../../components/shared/ServerDataTable'
 import { useApontamentoQueries } from '../../hooks/queries/useApontamentoQueries'
 import { useCacheInvalidation } from '../../hooks/useCacheInvalidation'
+import { useCsvImport } from '../../hooks/useCsvImport'
 import { ListApontamentosResponse } from '../../http/apontamento/list-apontamentos'
 import { useAlertStore } from '../../stores/alert-store'
 import { formatarMinutosParaHHMM } from '../../util/time-utils'
@@ -31,6 +32,27 @@ const Apontamentos = () => {
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
+  })
+
+  const { parseCsvFile } = useCsvImport({
+    onSuccess: (csvData) => {
+      console.log({ csvData })
+
+      /* setSelectedNfeCompra({
+        data: undefined,
+        nfeData,
+        type: 'IMPORT_XML',
+      }) */
+
+      setFormOpen(true)
+      enqueueSnackbar('XML importado com sucesso!', { variant: 'success' })
+    },
+    onError: (error) => {
+      enqueueSnackbar(error, { variant: 'error' })
+    },
+    onValidationError: (error) => {
+      enqueueSnackbar(error, { variant: 'error' })
+    },
   })
 
   const {
@@ -82,6 +104,20 @@ const Apontamentos = () => {
   const handleCopy = (apontamento: ListApontamentosResponse): void => {
     setSelectedApontamento({ data: apontamento, type: 'COPY' })
     setFormOpen(true)
+  }
+
+  const handleImportCsv = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    await parseCsvFile(file)
+
+    event.target.value = ''
   }
 
   const columns: GridColDef<ListApontamentosResponse>[] = [
@@ -261,13 +297,24 @@ const Apontamentos = () => {
         <DashboardCard
           title="Apontamentos"
           action={
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => setFormOpen(true)}
-            >
-              adicionar apontamento
-            </Button>
+            <Stack spacing={2} direction="row">
+              <Button variant="outlined" component="label">
+                importar csv
+                <Input
+                  inputProps={{ accept: '.csv' }}
+                  type="file"
+                  sx={{ display: 'none' }}
+                  onChange={handleImportCsv}
+                />
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setFormOpen(true)}
+              >
+                adicionar apontamento
+              </Button>
+            </Stack>
           }
         >
           <ServerDataTable
