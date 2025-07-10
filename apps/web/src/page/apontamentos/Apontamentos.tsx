@@ -11,16 +11,18 @@ import { ConfirmationModal } from '../../components/shared/ConfirmationModal'
 import { ServerDataTable } from '../../components/shared/ServerDataTable'
 import { useApontamentoQueries } from '../../hooks/queries/useApontamentoQueries'
 import { useCacheInvalidation } from '../../hooks/useCacheInvalidation'
-import { useCsvImport } from '../../hooks/useCsvImport'
+import { CsvRow, useCsvImport } from '../../hooks/useCsvImport'
 import { ListApontamentosResponse } from '../../http/apontamento/list-apontamentos'
 import { useAlertStore } from '../../stores/alert-store'
 import { formatarMinutosParaHHMM } from '../../util/time-utils'
 import { ApontamentoModal } from './components/ApontamentoModal'
+import { ImportCsvModal } from './components/ImportCsvModal'
 
 const Apontamentos = () => {
   useCacheInvalidation()
 
   const [formOpen, setFormOpen] = useState(false)
+  const [importCsvModalOpen, setImportCsvModalFormOpen] = useState(false)
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const { enqueueSnackbar } = useAlertStore((state) => state)
   const { orgSlug } = useParams()
@@ -29,6 +31,11 @@ const Apontamentos = () => {
     data: ListApontamentosResponse
     type: 'UPDATE' | 'COPY' | 'CREATE' | 'DELETE'
   }>()
+
+  const [selectedApontamentos, setSelectedApontamentos] = useState<{
+    data: CsvRow[]
+  }>()
+
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
@@ -38,13 +45,9 @@ const Apontamentos = () => {
     onSuccess: (csvData) => {
       console.log({ csvData })
 
-      /* setSelectedNfeCompra({
-        data: undefined,
-        nfeData,
-        type: 'IMPORT_XML',
-      }) */
+      setSelectedApontamentos({ data: csvData })
 
-      setFormOpen(true)
+      setImportCsvModalFormOpen(true)
       enqueueSnackbar('XML importado com sucesso!', { variant: 'success' })
     },
     onError: (error) => {
@@ -272,6 +275,14 @@ const Apontamentos = () => {
           setSelectedApontamento(undefined)
         }}
         form={selectedApontamento}
+      />
+      <ImportCsvModal
+        open={importCsvModalOpen}
+        onClose={() => {
+          setImportCsvModalFormOpen(false)
+          setSelectedApontamentos(undefined)
+        }}
+        form={selectedApontamentos}
       />
       <ConfirmationModal
         open={confirmModalOpen}

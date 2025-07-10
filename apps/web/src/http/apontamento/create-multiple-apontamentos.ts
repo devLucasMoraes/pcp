@@ -12,7 +12,7 @@ const apontamentoSchema = z.object({
   ordemProducaoId: z.string().uuid(),
 })
 
-const createMultipleApontamentosSchema = z.object({
+export const createMultipleApontamentosSchema = z.object({
   apontamentos: z
     .array(apontamentoSchema)
     .min(1, 'Deve conter pelo menos um apontamento'),

@@ -1,34 +1,47 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
+  Alert,
+  Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   Grid2,
-  TextField,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material'
-import { DateTimePicker, renderTimeViewClock } from '@mui/x-date-pickers'
-import { useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router'
 
-import { EquipamentoAutoComplete } from '../../../components/shared/autocompletes/EquipamentoAutoComplete'
-import { OcorrenciaAutoComplete } from '../../../components/shared/autocompletes/OcorrenciaAutoComplete'
-import { OperadorAutoComplete } from '../../../components/shared/autocompletes/OperadorAutoComplete'
-import { OrdemProducaoAutoComplete } from '../../../components/shared/autocompletes/OrdemProducaoAutoComplete'
 import { useApontamentoQueries } from '../../../hooks/queries/useApontamentoQueries'
+import { useEquipamentoQueries } from '../../../hooks/queries/useEquipamentoQueries'
+import { useOcorrenciaQueries } from '../../../hooks/queries/useOcorrenciaQueries'
+import { useOperadorQueries } from '../../../hooks/queries/useOperadorQueries'
+import { useOrdemProducaoQueries } from '../../../hooks/queries/useOrdemProducaoQueries'
+import { CsvRow } from '../../../hooks/useCsvImport'
 import {
-  CreateApontamentoDTO,
-  createApontamentoSchema,
-} from '../../../http/apontamento/create-apontamento'
-import { ListApontamentosResponse } from '../../../http/apontamento/list-apontamentos'
-import {
-  UpdateApontamentoDTO,
-  updateApontamentoSchema,
-} from '../../../http/apontamento/update-apontamento'
+  CreateMultipleApontamentosDTO,
+  createMultipleApontamentosSchema,
+} from '../../../http/apontamento/create-multiple-apontamentos'
 import { useAlertStore } from '../../../stores/alert-store'
+
+interface ProcessedCsvRow extends CsvRow {
+  ocorrenciaId?: string
+  operadorId?: string
+  equipamentoId?: string
+  ordemProducaoId?: string
+  errors: string[]
+}
 
 export const ImportCsvModal = ({
   open,
@@ -39,119 +52,210 @@ export const ImportCsvModal = ({
   onClose: () => void
   form:
     | {
-        data: ListApontamentosResponse
-        type: 'UPDATE' | 'COPY' | 'CREATE' | 'DELETE'
+        data: CsvRow[]
       }
     | undefined
 }) => {
   const { enqueueSnackbar } = useAlertStore((state) => state)
-
   const { orgSlug } = useParams()
+  const { useCreateBulk: useCreateBulkApontamentos } = useApontamentoQueries()
 
-  const schema =
-    form?.data && form.type === 'UPDATE'
-      ? updateApontamentoSchema
-      : createApontamentoSchema
+  const [processedData, setProcessedData] = useState<ProcessedCsvRow[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
 
-  const { useCreate: useCreateApontamento, useUpdate: useUpdateApontamento } =
-    useApontamentoQueries()
+  // Hooks para buscar os dados necessários
+  const { useGetAll: useGetAllOcorrencias } = useOcorrenciaQueries()
+  const { useGetAll: useGetAllOperadores } = useOperadorQueries()
+  const { useGetAll: useGetAllEquipamentos } = useEquipamentoQueries()
+  const { useGetAll: useGetAllOrdensProducao } = useOrdemProducaoQueries()
+
+  // Queries para buscar todos os dados
+  const { data: ocorrencias } = useGetAllOcorrencias(orgSlug || '')
+  const { data: operadores } = useGetAllOperadores(orgSlug || '')
+  const { data: equipamentos } = useGetAllEquipamentos(orgSlug || '')
+  const { data: ordensProducao } = useGetAllOrdensProducao(orgSlug || '')
 
   const {
-    control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
     reset,
-  } = useForm<CreateApontamentoDTO | UpdateApontamentoDTO>({
-    resolver: zodResolver(schema),
+    setValue,
+  } = useForm<CreateMultipleApontamentosDTO>({
+    resolver: zodResolver(createMultipleApontamentosSchema),
     defaultValues: {
-      dataInicio: null as unknown as Date,
-      dataFim: null as unknown as Date,
-      qtdeApontada: 0,
-      ocorrenciaId: '',
-      operadorId: '',
-      equipamentoId: '',
-      ordemProducaoId: '',
+      apontamentos: [],
     },
   })
 
   useEffect(() => {
-    if (!form?.data) {
-      reset({
-        dataInicio: null as unknown as Date,
-        dataFim: null as unknown as Date,
-        qtdeApontada: 0,
-        ocorrenciaId: '',
-        operadorId: '',
-        equipamentoId: '',
-        ordemProducaoId: '',
-      })
+    if (
+      !form?.data ||
+      !ocorrencias ||
+      !operadores ||
+      !equipamentos ||
+      !ordensProducao
+    ) {
       return
     }
 
-    const { data } = form
+    setIsProcessing(true)
 
-    reset({
-      dataInicio: new Date(data.dataInicio),
-      dataFim: new Date(data.dataFim),
-      qtdeApontada: data.qtdeApontada,
-      ocorrenciaId: data.ocorrencia.id,
-      operadorId: data.operador.id,
-      equipamentoId: data.equipamento.id,
-      ordemProducaoId: data.ordemProducao.id,
+    const processedRows: ProcessedCsvRow[] = form.data.map((csvRow) => {
+      const errors: string[] = []
+      let ocorrenciaId: string | undefined
+      let operadorId: string | undefined
+      let equipamentoId: string | undefined
+      let ordemProducaoId: string | undefined
+
+      // Buscar ocorrência por descrição
+      if (csvRow.ocorrenciaDescricao) {
+        const ocorrencia = ocorrencias.find(
+          (o) =>
+            o.descricao?.toLowerCase() ===
+            csvRow.ocorrenciaDescricao?.toLowerCase(),
+        )
+        if (ocorrencia) {
+          ocorrenciaId = ocorrencia.id
+        } else {
+          errors.push(
+            `Ocorrência "${csvRow.ocorrenciaDescricao}" não encontrada`,
+          )
+        }
+      } else {
+        errors.push('Descrição da ocorrência não informada')
+      }
+
+      // Buscar operador por nome
+      if (csvRow.operadorNome) {
+        const operador = operadores.find(
+          (o) => o.nome?.toLowerCase() === csvRow.operadorNome?.toLowerCase(),
+        )
+        if (operador) {
+          operadorId = operador.id
+        } else {
+          errors.push(`Operador "${csvRow.operadorNome}" não encontrado`)
+        }
+      } else {
+        errors.push('Nome do operador não informado')
+      }
+
+      // Buscar equipamento por nome
+      if (csvRow.equipamentoNome) {
+        const equipamento = equipamentos.find(
+          (e) =>
+            e.nome?.toLowerCase() === csvRow.equipamentoNome?.toLowerCase(),
+        )
+        if (equipamento) {
+          equipamentoId = equipamento.id
+        } else {
+          errors.push(`Equipamento "${csvRow.equipamentoNome}" não encontrado`)
+        }
+      } else {
+        errors.push('Nome do equipamento não informado')
+      }
+
+      // Buscar ordem de produção por código
+      if (csvRow.codOP) {
+        const ordemProducao = ordensProducao.find(
+          (op) => op.cod?.toLowerCase() === csvRow.codOP?.toLowerCase(),
+        )
+        if (ordemProducao) {
+          ordemProducaoId = ordemProducao.id
+        } else {
+          errors.push(`Ordem de produção "${csvRow.codOP}" não encontrada`)
+        }
+      } else {
+        errors.push('Código da ordem de produção não informado')
+      }
+
+      return {
+        ...csvRow,
+        ocorrenciaId,
+        operadorId,
+        equipamentoId,
+        ordemProducaoId,
+        errors,
+      }
     })
-  }, [form, reset])
 
-  const { mutate: createApontamento } = useCreateApontamento()
+    setProcessedData(processedRows)
+    setIsProcessing(false)
 
-  const { mutate: updateApontamento } = useUpdateApontamento()
+    // Preparar dados para o formulário (apenas registros sem erro)
+    const validRows = processedRows.filter((row) => row.errors.length === 0)
+    const apontamentos = validRows.map((row) => ({
+      dataInicio: row.dataInicio || '',
+      dataFim: row.dataFim || '',
+      qtdeApontada: Number(row.qtdeApontada) || 0,
+      ocorrenciaId: row.ocorrenciaId!,
+      operadorId: row.operadorId!,
+      equipamentoId: row.equipamentoId!,
+      ordemProducaoId: row.ordemProducaoId!,
+    }))
 
-  const onSubmit = (data: CreateApontamentoDTO | UpdateApontamentoDTO) => {
+    setValue('apontamentos', apontamentos)
+  }, [form, ocorrencias, operadores, equipamentos, ordensProducao, setValue])
+
+  const { mutate: createBulkApontamentos } = useCreateBulkApontamentos()
+
+  const onSubmit = (data: CreateMultipleApontamentosDTO) => {
     if (!orgSlug) {
       enqueueSnackbar('Selecione uma organização', { variant: 'error' })
       return
     }
-    if (form?.data && form.type === 'UPDATE') {
-      updateApontamento(
-        { id: form.data.id, orgSlug, data },
-        {
-          onSuccess: () => {
-            handleClose()
-            enqueueSnackbar('Apontamento atualizado com sucesso', {
-              variant: 'success',
-            })
-          },
-          onError: (error) => {
-            console.error(error)
-            enqueueSnackbar(error.response?.data.message || error.message, {
-              variant: 'error',
-            })
-          },
-        },
-      )
-    } else {
-      createApontamento(
-        { orgSlug, data },
-        {
-          onSuccess: () => {
-            handleClose()
-            enqueueSnackbar('Apontamento criado com sucesso', {
-              variant: 'success',
-            })
-          },
-          onError: (error) => {
-            console.error(error)
-            enqueueSnackbar(error.response?.data.message || error.message, {
-              variant: 'error',
-            })
-          },
-        },
-      )
+
+    if (data.apontamentos.length === 0) {
+      enqueueSnackbar('Nenhum apontamento válido para importar', {
+        variant: 'error',
+      })
+      return
     }
+
+    createBulkApontamentos(
+      { orgSlug, data },
+      {
+        onSuccess: (response) => {
+          handleClose()
+          enqueueSnackbar(
+            `${response.totalCreated} apontamentos criados com sucesso`,
+            {
+              variant: 'success',
+            },
+          )
+        },
+        onError: (error) => {
+          console.error(error)
+          enqueueSnackbar(error.response?.data.message || error.message, {
+            variant: 'error',
+          })
+        },
+      },
+    )
   }
+
   const handleClose = () => {
     reset()
+    setProcessedData([])
     onClose()
   }
+
+  const formatDateTime = (dateTimeString: string) => {
+    try {
+      const date = new Date(dateTimeString)
+      return date.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    } catch {
+      return dateTimeString
+    }
+  }
+
+  const validRows = processedData.filter((row) => row.errors.length === 0)
+  const invalidRows = processedData.filter((row) => row.errors.length > 0)
 
   return (
     <Dialog
@@ -159,135 +263,117 @@ export const ImportCsvModal = ({
       onClose={handleClose}
       component="form"
       onSubmit={handleSubmit(onSubmit)}
+      maxWidth="xl"
+      fullWidth
     >
-      <DialogTitle>{form?.type === 'UPDATE' ? 'Editar' : 'Novo'}</DialogTitle>
+      <DialogTitle>Importar Apontamentos via CSV</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {form?.type === 'UPDATE'
-            ? 'Preencha os campos abaixo para editar o apontamento'
-            : 'Preencha os campos abaixo para criar um novo apontamento'}
+          Revise os dados importados do CSV. Os registros com erro não serão
+          importados.
         </DialogContentText>
-        <Grid2 container spacing={2} sx={{ mt: 2 }}>
-          <Grid2 size="auto">
-            <Controller
-              name="dataInicio"
-              control={control}
-              render={({ field }) => (
-                <DateTimePicker
-                  {...field}
-                  label="Data de início"
-                  slotProps={{
-                    textField: {
-                      error: !!errors.dataInicio,
-                      helperText: errors.dataInicio?.message,
-                    },
-                  }}
-                  viewRenderers={{
-                    hours: renderTimeViewClock,
-                    minutes: renderTimeViewClock,
-                    seconds: renderTimeViewClock,
-                  }}
-                />
-              )}
-            />
-          </Grid2>
 
-          <Grid2 size="auto">
-            <Controller
-              name="dataFim"
-              control={control}
-              render={({ field }) => (
-                <DateTimePicker
-                  {...field}
-                  label="Data de finalização"
-                  slotProps={{
-                    textField: {
-                      error: !!errors.dataFim,
-                      helperText: errors.dataFim?.message,
-                    },
-                  }}
-                  viewRenderers={{
-                    hours: renderTimeViewClock,
-                    minutes: renderTimeViewClock,
-                    seconds: renderTimeViewClock,
-                  }}
+        {isProcessing ? (
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Typography>Processando dados do CSV...</Typography>
+          </Box>
+        ) : processedData.length > 0 ? (
+          <Box sx={{ mt: 2 }}>
+            <Grid2 container spacing={2} sx={{ mb: 2 }}>
+              <Grid2 size="auto">
+                <Chip
+                  label={`${validRows.length} válidos`}
+                  color="success"
+                  variant="outlined"
                 />
-              )}
-            />
-          </Grid2>
-
-          <Grid2 size={12}>
-            <Controller
-              name="qtdeApontada"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  type="number"
-                  label="Quantidade"
-                  error={!!errors.qtdeApontada}
-                  helperText={errors.qtdeApontada?.message}
-                  fullWidth
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+              </Grid2>
+              <Grid2 size="auto">
+                <Chip
+                  label={`${invalidRows.length} com erro`}
+                  color="error"
+                  variant="outlined"
                 />
-              )}
-            />
-          </Grid2>
+              </Grid2>
+            </Grid2>
 
-          <Grid2 size={12}>
-            <Controller
-              name="ocorrenciaId"
-              control={control}
-              render={({ field }) => (
-                <OcorrenciaAutoComplete
-                  field={field}
-                  error={errors.ocorrenciaId}
-                />
-              )}
-            />
-          </Grid2>
+            {invalidRows.length > 0 && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                {invalidRows.length} registro{invalidRows.length > 1 ? 's' : ''}{' '}
+                com erro não ser{invalidRows.length > 1 ? 'ão' : 'á'} importado
+                {invalidRows.length > 1 ? 's' : ''}.
+              </Alert>
+            )}
 
-          <Grid2 size={12}>
-            <Controller
-              name="ordemProducaoId"
-              control={control}
-              render={({ field }) => (
-                <OrdemProducaoAutoComplete
-                  field={field}
-                  error={errors.ordemProducaoId}
-                />
-              )}
-            />
-          </Grid2>
-
-          <Grid2 size={12}>
-            <Controller
-              name="equipamentoId"
-              control={control}
-              render={({ field }) => (
-                <EquipamentoAutoComplete
-                  field={field}
-                  error={errors.equipamentoId}
-                />
-              )}
-            />
-          </Grid2>
-
-          <Grid2 size={12}>
-            <Controller
-              name="operadorId"
-              control={control}
-              render={({ field }) => (
-                <OperadorAutoComplete field={field} error={errors.operadorId} />
-              )}
-            />
-          </Grid2>
-        </Grid2>
+            <TableContainer component={Paper} sx={{ maxHeight: 500 }}>
+              <Table stickyHeader size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Data Início</TableCell>
+                    <TableCell>Data Fim</TableCell>
+                    <TableCell>Quantidade</TableCell>
+                    <TableCell>Ocorrência</TableCell>
+                    <TableCell>Operador</TableCell>
+                    <TableCell>Equipamento</TableCell>
+                    <TableCell>Ordem Produção</TableCell>
+                    <TableCell>Erros</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {processedData.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Chip
+                          label={row.errors.length === 0 ? 'OK' : 'Erro'}
+                          color={row.errors.length === 0 ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{formatDateTime(row.dataInicio)}</TableCell>
+                      <TableCell>{formatDateTime(row.dataFim)}</TableCell>
+                      <TableCell>{row.qtdeApontada}</TableCell>
+                      <TableCell>{row.ocorrenciaDescricao}</TableCell>
+                      <TableCell>{row.operadorNome}</TableCell>
+                      <TableCell>{row.equipamentoNome}</TableCell>
+                      <TableCell>{row.codOP}</TableCell>
+                      <TableCell>
+                        {row.errors.length > 0 && (
+                          <Box>
+                            {row.errors.map((error, errorIndex) => (
+                              <Typography
+                                key={errorIndex}
+                                variant="caption"
+                                color="error"
+                                display="block"
+                              >
+                                {error}
+                              </Typography>
+                            ))}
+                          </Box>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Nenhum dado encontrado para importar.
+          </Typography>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
-        <Button type="submit" variant="contained" loading={isSubmitting}>
-          {isSubmitting ? 'Salvando...' : 'Salvar'}
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={validRows.length === 0 || isSubmitting || isProcessing}
+        >
+          {isSubmitting
+            ? 'Importando...'
+            : `Importar ${validRows.length} Apontamentos`}
         </Button>
       </DialogActions>
     </Dialog>
