@@ -17,6 +17,11 @@ import {
   CreateApontamentoDTO,
   CreateApontamentoResponse,
 } from '../../http/apontamento/create-apontamento'
+import {
+  createMultipleApontamentos,
+  CreateMultipleApontamentosDTO,
+  CreateMultipleApontamentosResponse,
+} from '../../http/apontamento/create-multiple-apontamentos'
 import { disableApontamento } from '../../http/apontamento/disable-apontamento'
 import {
   getAllApontamentos,
@@ -130,6 +135,30 @@ export function useApontamentoQueries() {
     })
   }
 
+  const useCreateBulk = (
+    mutationOptions?: Omit<
+      UseMutationOptions<
+        CreateMultipleApontamentosResponse,
+        AxiosError<ErrorResponse>,
+        { orgSlug: string; data: CreateMultipleApontamentosDTO }
+      >,
+      'mutationFn'
+    >,
+  ) => {
+    return useMutation({
+      ...mutationOptions,
+      mutationFn: ({ orgSlug, data }) =>
+        createMultipleApontamentos(orgSlug, data),
+      onSuccess: (data, variables, context) => {
+        queryClient.invalidateQueries({ queryKey: [resourceKey] })
+        mutationOptions?.onSuccess?.(data, variables, context)
+      },
+      onError: (error, variables, context) => {
+        mutationOptions?.onError?.(error, variables, context)
+      },
+    })
+  }
+
   const useUpdate = (
     mutationOptions?: Omit<
       UseMutationOptions<
@@ -182,6 +211,7 @@ export function useApontamentoQueries() {
     useListPaginated,
     useGetAll,
     useCreate,
+    useCreateBulk,
     useUpdate,
     useDisable,
     useTotaisProducao,
