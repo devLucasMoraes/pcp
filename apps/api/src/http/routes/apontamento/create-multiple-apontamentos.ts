@@ -14,7 +14,13 @@ const apontamentoSchema = z.object({
   ocorrenciaId: z.string().uuid(),
   operadorId: z.string().uuid(),
   equipamentoId: z.string().uuid(),
-  ordemProducaoId: z.string().uuid(),
+  ordemProducao: z.object({
+    cod: z.string(),
+    descricao: z.string(),
+    tiragem: z.number(),
+    valorServico: z.number(),
+    nomeCliente: z.string(),
+  }),
 })
 
 const bodySchema = z.object({

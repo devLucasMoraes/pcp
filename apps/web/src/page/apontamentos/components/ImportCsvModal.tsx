@@ -27,19 +27,18 @@ import { useApontamentoQueries } from '../../../hooks/queries/useApontamentoQuer
 import { useEquipamentoQueries } from '../../../hooks/queries/useEquipamentoQueries'
 import { useOcorrenciaQueries } from '../../../hooks/queries/useOcorrenciaQueries'
 import { useOperadorQueries } from '../../../hooks/queries/useOperadorQueries'
-import { useOrdemProducaoQueries } from '../../../hooks/queries/useOrdemProducaoQueries'
 import { CsvRow } from '../../../hooks/useCsvImport'
 import {
   CreateMultipleApontamentosDTO,
   createMultipleApontamentosSchema,
 } from '../../../http/apontamento/create-multiple-apontamentos'
 import { useAlertStore } from '../../../stores/alert-store'
+import { formatarDateBR } from '../../../util/time-utils'
 
 interface ProcessedCsvRow extends CsvRow {
   ocorrenciaId?: string
   operadorId?: string
   equipamentoId?: string
-  ordemProducaoId?: string
   errors: string[]
 }
 
@@ -67,13 +66,11 @@ export const ImportCsvModal = ({
   const { useGetAll: useGetAllOcorrencias } = useOcorrenciaQueries()
   const { useGetAll: useGetAllOperadores } = useOperadorQueries()
   const { useGetAll: useGetAllEquipamentos } = useEquipamentoQueries()
-  const { useGetAll: useGetAllOrdensProducao } = useOrdemProducaoQueries()
 
   // Queries para buscar todos os dados
   const { data: ocorrencias } = useGetAllOcorrencias(orgSlug || '')
   const { data: operadores } = useGetAllOperadores(orgSlug || '')
   const { data: equipamentos } = useGetAllEquipamentos(orgSlug || '')
-  const { data: ordensProducao } = useGetAllOrdensProducao(orgSlug || '')
 
   const {
     handleSubmit,
@@ -88,13 +85,7 @@ export const ImportCsvModal = ({
   })
 
   useEffect(() => {
-    if (
-      !form?.data ||
-      !ocorrencias ||
-      !operadores ||
-      !equipamentos ||
-      !ordensProducao
-    ) {
+    if (!form?.data || !ocorrencias || !operadores || !equipamentos) {
       return
     }
 
@@ -105,7 +96,6 @@ export const ImportCsvModal = ({
       let ocorrenciaId: string | undefined
       let operadorId: string | undefined
       let equipamentoId: string | undefined
-      let ordemProducaoId: string | undefined
 
       // Buscar ocorrência por descrição
       if (csvRow.ocorrenciaDescricao) {
@@ -154,26 +144,11 @@ export const ImportCsvModal = ({
         errors.push('Nome do equipamento não informado')
       }
 
-      // Buscar ordem de produção por código
-      if (csvRow.codOP) {
-        const ordemProducao = ordensProducao.find(
-          (op) => op.cod?.toLowerCase() === csvRow.codOP?.toLowerCase(),
-        )
-        if (ordemProducao) {
-          ordemProducaoId = ordemProducao.id
-        } else {
-          errors.push(`Ordem de produção "${csvRow.codOP}" não encontrada`)
-        }
-      } else {
-        errors.push('Código da ordem de produção não informado')
-      }
-
       return {
         ...csvRow,
         ocorrenciaId,
         operadorId,
         equipamentoId,
-        ordemProducaoId,
         errors,
       }
     })
@@ -190,11 +165,17 @@ export const ImportCsvModal = ({
       ocorrenciaId: row.ocorrenciaId!,
       operadorId: row.operadorId!,
       equipamentoId: row.equipamentoId!,
-      ordemProducaoId: row.ordemProducaoId!,
+      ordemProducao: {
+        cod: row.codOP,
+        descricao: row.descricao,
+        tiragem: Number(row.tiragem),
+        valorServico: Number(row.valorServico),
+        nomeCliente: row.nomeCliente,
+      },
     }))
 
     setValue('apontamentos', apontamentos)
-  }, [form, ocorrencias, operadores, equipamentos, ordensProducao, setValue])
+  }, [form, ocorrencias, operadores, equipamentos, setValue])
 
   const { mutate: createBulkApontamentos } = useCreateBulkApontamentos()
 
@@ -237,21 +218,6 @@ export const ImportCsvModal = ({
     reset()
     setProcessedData([])
     onClose()
-  }
-
-  const formatDateTime = (dateTimeString: string) => {
-    try {
-      const date = new Date(dateTimeString)
-      return date.toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    } catch {
-      return dateTimeString
-    }
   }
 
   const validRows = processedData.filter((row) => row.errors.length === 0)
@@ -329,8 +295,8 @@ export const ImportCsvModal = ({
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>{formatDateTime(row.dataInicio)}</TableCell>
-                      <TableCell>{formatDateTime(row.dataFim)}</TableCell>
+                      <TableCell>{formatarDateBR(row.dataInicio)}</TableCell>
+                      <TableCell>{formatarDateBR(row.dataFim)}</TableCell>
                       <TableCell>{row.qtdeApontada}</TableCell>
                       <TableCell>{row.ocorrenciaDescricao}</TableCell>
                       <TableCell>{row.operadorNome}</TableCell>

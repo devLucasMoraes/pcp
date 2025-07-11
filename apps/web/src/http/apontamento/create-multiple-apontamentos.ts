@@ -3,13 +3,19 @@ import { z } from 'zod'
 import { api } from '../api/axios'
 
 const apontamentoSchema = z.object({
-  dataInicio: z.string(),
-  dataFim: z.string(),
+  dataInicio: z.date(),
+  dataFim: z.date(),
   qtdeApontada: z.coerce.number(),
   ocorrenciaId: z.string().uuid(),
   operadorId: z.string().uuid(),
   equipamentoId: z.string().uuid(),
-  ordemProducaoId: z.string().uuid(),
+  ordemProducao: z.object({
+    cod: z.string(),
+    descricao: z.string(),
+    tiragem: z.number(),
+    valorServico: z.number(),
+    nomeCliente: z.string(),
+  }),
 })
 
 export const createMultipleApontamentosSchema = z.object({

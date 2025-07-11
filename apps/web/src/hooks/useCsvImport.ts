@@ -1,9 +1,11 @@
 import Papa from 'papaparse'
 import { useCallback } from 'react'
 
+import { parseDate } from '../util/time-utils'
+
 export interface CsvRow {
-  dataInicio: string
-  dataFim: string
+  dataInicio: Date
+  dataFim: Date
   duracao: string
   ocorrenciaDescricao: string
   qtdeApontada: number
@@ -128,8 +130,8 @@ export const useCsvImport = (
             }
 
             parsedData.push({
-              dataInicio: row[0] || '',
-              dataFim: row[1] || '',
+              dataInicio: parseDate(row[0]),
+              dataFim: parseDate(row[1]),
               duracao: row[2] || '',
               ocorrenciaDescricao: row[3] || '',
               qtdeApontada,

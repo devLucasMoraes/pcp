@@ -1,4 +1,4 @@
-import { In } from 'typeorm'
+import { EntityManager, In } from 'typeorm'
 
 import { Apontamento } from '@/domain/entities/Apontamento'
 import { Equipamento } from '@/domain/entities/Equipamento'
@@ -17,125 +17,54 @@ export const createMultipleApontamentosUseCase = {
     membership: Member,
   ): Promise<Apontamento[]> {
     return repository.apontamento.manager.transaction(async (manager) => {
-      // Coletamos todos os IDs únicos para validação
-      const ocorrenciaIds = [
-        ...new Set(dto.apontamentos.map((a) => a.ocorrenciaId)),
-      ]
-      const operadorIds = [
-        ...new Set(dto.apontamentos.map((a) => a.operadorId)),
-      ]
-      const equipamentoIds = [
-        ...new Set(dto.apontamentos.map((a) => a.equipamentoId)),
-      ]
-      const ordemProducaoIds = [
-        ...new Set(dto.apontamentos.map((a) => a.ordemProducaoId)),
-      ]
+      // Extrair IDs únicos uma única vez
+      const uniqueIds = this.extractUniqueIds(dto.apontamentos)
 
-      // Validação em lote das ocorrências usando In() do TypeORM
-      const existingOcorrencias = await manager.find(Ocorrencia, {
-        where: {
-          id: In(ocorrenciaIds),
-          organizationId: membership.organization.id,
-        },
-        select: ['id'],
-      })
+      // Validar existência de ocorrencias, operadores e equipamentos
+      const [
+        validOcorrencias,
+        validOperadores,
+        validEquipamentos,
+        existingOrdens,
+      ] = await Promise.all([
+        this.validateOcorrencias(
+          manager,
+          uniqueIds.ocorrenciaIds,
+          membership.organization.id,
+        ),
+        this.validateOperadores(
+          manager,
+          uniqueIds.operadorIds,
+          membership.organization.id,
+        ),
+        this.validateEquipamentos(
+          manager,
+          uniqueIds.equipamentoIds,
+          membership.organization.id,
+        ),
+        this.findExistingOrdens(
+          manager,
+          uniqueIds.ordemProducaoCods,
+          membership.organization.id,
+        ),
+      ])
 
-      const foundOcorrenciaIds = existingOcorrencias.map((o) => o.id)
-      const missingOcorrenciaIds = ocorrenciaIds.filter(
-        (id) => !foundOcorrenciaIds.includes(id),
+      // Criar ordens de produção faltantes
+      const codToIdMap = await this.createMissingOrdens(
+        manager,
+        dto.apontamentos,
+        existingOrdens,
+        membership,
       )
 
-      if (missingOcorrenciaIds.length > 0) {
-        throw new BadRequestError(
-          `Ocorrências não encontradas: ${missingOcorrenciaIds.join(', ')}`,
-        )
-      }
-
-      // Validação em lote dos operadores
-      const existingOperadores = await manager.find(Operador, {
-        where: {
-          id: In(operadorIds),
-          organizationId: membership.organization.id,
-        },
-        select: ['id'],
-      })
-
-      const foundOperadorIds = existingOperadores.map((o) => o.id)
-      const missingOperadorIds = operadorIds.filter(
-        (id) => !foundOperadorIds.includes(id),
+      // Preparar dados dos apontamentos com validação prévia
+      const apontamentosData = this.prepareApontamentosData(
+        dto.apontamentos,
+        codToIdMap,
+        membership,
       )
 
-      if (missingOperadorIds.length > 0) {
-        throw new BadRequestError(
-          `Operadores não encontrados: ${missingOperadorIds.join(', ')}`,
-        )
-      }
-
-      // Validação em lote dos equipamentos
-      const existingEquipamentos = await manager.find(Equipamento, {
-        where: {
-          id: In(equipamentoIds),
-          organizationId: membership.organization.id,
-        },
-        select: ['id'],
-      })
-
-      const foundEquipamentoIds = existingEquipamentos.map((e) => e.id)
-      const missingEquipamentoIds = equipamentoIds.filter(
-        (id) => !foundEquipamentoIds.includes(id),
-      )
-
-      if (missingEquipamentoIds.length > 0) {
-        throw new BadRequestError(
-          `Equipamentos não encontrados: ${missingEquipamentoIds.join(', ')}`,
-        )
-      }
-
-      // Validação em lote das ordens de produção
-      const existingOrdens = await manager.find(OrdemProducao, {
-        where: {
-          id: In(ordemProducaoIds),
-          organizationId: membership.organization.id,
-        },
-        select: ['id'],
-      })
-
-      const foundOrdemIds = existingOrdens.map((o) => o.id)
-      const missingOrdemIds = ordemProducaoIds.filter(
-        (id) => !foundOrdemIds.includes(id),
-      )
-
-      if (missingOrdemIds.length > 0) {
-        throw new BadRequestError(
-          `Ordens de produção não encontradas: ${missingOrdemIds.join(', ')}`,
-        )
-      }
-
-      // Preparar dados para bulk insert otimizado
-      const apontamentosData = dto.apontamentos.map((apontamentoData) => {
-        const { duracaoMinutos } = calcularDuracaoEmMinutos(
-          apontamentoData.dataInicio,
-          apontamentoData.dataFim,
-        )
-
-        return {
-          dataInicio: apontamentoData.dataInicio,
-          dataFim: apontamentoData.dataFim,
-          duracao: duracaoMinutos,
-          qtdeApontada: apontamentoData.qtdeApontada,
-          ocorrencia: { id: apontamentoData.ocorrenciaId },
-          operador: { id: apontamentoData.operadorId },
-          equipamento: { id: apontamentoData.equipamentoId },
-          ordemProducao: { id: apontamentoData.ordemProducaoId },
-          organizationId: membership.organization.id,
-          createdBy: membership.user.id,
-          updatedBy: membership.user.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
-      })
-
-      // Usar insert() para melhor performance em bulk operations
+      // Inserir apontamentos em lote
       const insertResult = await manager
         .createQueryBuilder()
         .insert()
@@ -143,24 +72,233 @@ export const createMultipleApontamentosUseCase = {
         .values(apontamentosData)
         .execute()
 
-      // Buscar os registros criados para retornar com os dados completos
-      const insertedIds = insertResult.identifiers.map(
-        (identifier) => identifier.id,
-      )
+      // Retornar apontamentos criados com relacionamentos
+      return this.fetchCreatedApontamentos(manager, insertResult.identifiers)
+    })
+  },
 
-      const apontamentos = await manager.find(Apontamento, {
-        where: {
-          id: In(insertedIds),
-        },
-        relations: {
-          equipamento: true,
-          ocorrencia: true,
-          operador: true,
-          ordemProducao: true,
-        },
+  // Método auxiliar para extrair IDs únicos
+  extractUniqueIds(
+    apontamentos: CreateMultipleApontamentosDTO['apontamentos'],
+  ) {
+    const ocorrenciaIds = new Set<string>()
+    const operadorIds = new Set<string>()
+    const equipamentoIds = new Set<string>()
+    const ordemProducaoCods = new Set<string>()
+
+    apontamentos.forEach((ap) => {
+      ocorrenciaIds.add(ap.ocorrenciaId)
+      operadorIds.add(ap.operadorId)
+      equipamentoIds.add(ap.equipamentoId)
+      ordemProducaoCods.add(ap.ordemProducao.cod)
+    })
+
+    return {
+      ocorrenciaIds: Array.from(ocorrenciaIds),
+      operadorIds: Array.from(operadorIds),
+      equipamentoIds: Array.from(equipamentoIds),
+      ordemProducaoCods: Array.from(ordemProducaoCods),
+    }
+  },
+
+  // Validações assíncronas (implementar conforme necessário)
+  async validateOcorrencias(
+    manager: EntityManager,
+    ids: string[],
+    organizationId: string,
+  ) {
+    const found = await manager.find(Ocorrencia, {
+      where: { id: In(ids), organizationId },
+      select: ['id'],
+    })
+
+    if (found.length !== ids.length) {
+      const foundIds = found.map((o) => o.id)
+      const missing = ids.filter((id) => !foundIds.includes(id))
+      throw new BadRequestError(
+        `Ocorrências não encontradas: ${missing.join(', ')}`,
+      )
+    }
+
+    return found
+  },
+
+  async validateOperadores(
+    manager: EntityManager,
+    ids: string[],
+    organizationId: string,
+  ) {
+    const found = await manager.find(Operador, {
+      where: { id: In(ids), organizationId },
+      select: ['id'],
+    })
+
+    if (found.length !== ids.length) {
+      const foundIds = found.map((o) => o.id)
+      const missing = ids.filter((id) => !foundIds.includes(id))
+      throw new BadRequestError(
+        `Operadores não encontrados: ${missing.join(', ')}`,
+      )
+    }
+
+    return found
+  },
+
+  async validateEquipamentos(
+    manager: EntityManager,
+    ids: string[],
+    organizationId: string,
+  ) {
+    const found = await manager.find(Equipamento, {
+      where: { id: In(ids), organizationId },
+      select: ['id'],
+    })
+
+    if (found.length !== ids.length) {
+      const foundIds = found.map((e) => e.id)
+      const missing = ids.filter((id) => !foundIds.includes(id))
+      throw new BadRequestError(
+        `Equipamentos não encontrados: ${missing.join(', ')}`,
+      )
+    }
+
+    return found
+  },
+
+  async findExistingOrdens(
+    manager: EntityManager,
+    cods: string[],
+    organizationId: string,
+  ) {
+    return manager.find(OrdemProducao, {
+      where: { cod: In(cods), organizationId },
+      select: ['id', 'cod'],
+    })
+  },
+
+  async createMissingOrdens(
+    manager: EntityManager,
+    apontamentos: CreateMultipleApontamentosDTO['apontamentos'],
+    existingOrdens: OrdemProducao[],
+    membership: Member,
+  ) {
+    // Criar mapa de códigos existentes
+    const codToIdMap = new Map<string, string>()
+    existingOrdens.forEach((ordem) => {
+      codToIdMap.set(ordem.cod, ordem.id)
+    })
+
+    // Identificar códigos únicos faltantes
+    const existingCods = new Set(existingOrdens.map((o) => o.cod))
+    const missingCods = new Set<string>()
+    const ordensDataMap = new Map<string, Partial<OrdemProducao>>()
+
+    // Coletar dados das ordens faltantes (primeira ocorrência de cada código)
+    apontamentos.forEach((ap) => {
+      const cod = ap.ordemProducao.cod
+      if (!existingCods.has(cod) && !missingCods.has(cod)) {
+        missingCods.add(cod)
+        ordensDataMap.set(cod, {
+          descricao: ap.ordemProducao.descricao,
+          tiragem: ap.ordemProducao.tiragem,
+          valorServico: ap.ordemProducao.valorServico,
+          nomeCliente: ap.ordemProducao.nomeCliente,
+        })
+      }
+    })
+
+    // Criar novas ordens em lote usando INSERT
+    if (missingCods.size > 0) {
+      const now = new Date()
+      const newOrdensData = Array.from(missingCods).map((cod) => {
+        const data = ordensDataMap.get(cod)
+        if (!data)
+          throw new BadRequestError(`Dados insuficientes para ordem ${cod}`)
+
+        return {
+          cod,
+          ...data,
+          organizationId: membership.organization.id,
+          createdBy: membership.user.id,
+          updatedBy: membership.user.id,
+          createdAt: now,
+          updatedAt: now,
+        }
       })
 
-      return apontamentos
+      // INSERT em lote - muito mais eficiente
+      const insertResult = await manager
+        .createQueryBuilder()
+        .insert()
+        .into(OrdemProducao)
+        .values(newOrdensData)
+        .execute()
+
+      // Mapear IDs das ordens criadas
+      const createdIds = insertResult.identifiers.map((id) => id.id)
+      const createdOrdens = await manager.find(OrdemProducao, {
+        where: { id: In(createdIds) },
+        select: ['id', 'cod'],
+      })
+
+      // Adicionar novas ordens ao mapa
+      createdOrdens.forEach((ordem) => {
+        codToIdMap.set(ordem.cod, ordem.id)
+      })
+    }
+
+    return codToIdMap
+  },
+
+  prepareApontamentosData(
+    apontamentos: CreateMultipleApontamentosDTO['apontamentos'],
+    codToIdMap: Map<string, string>,
+    membership: Member,
+  ) {
+    const now = new Date()
+
+    return apontamentos.map((apontamentoData) => {
+      const { duracaoMinutos } = calcularDuracaoEmMinutos(
+        apontamentoData.dataInicio,
+        apontamentoData.dataFim,
+      )
+
+      const ordemId = codToIdMap.get(apontamentoData.ordemProducao.cod)
+      if (!ordemId) {
+        throw new BadRequestError(
+          `Ordem de produção ${apontamentoData.ordemProducao.cod} não encontrada`,
+        )
+      }
+
+      return {
+        dataInicio: apontamentoData.dataInicio,
+        dataFim: apontamentoData.dataFim,
+        duracao: duracaoMinutos,
+        qtdeApontada: apontamentoData.qtdeApontada,
+        ocorrencia: { id: apontamentoData.ocorrenciaId },
+        operador: { id: apontamentoData.operadorId },
+        equipamento: { id: apontamentoData.equipamentoId },
+        ordemProducao: { id: ordemId },
+        organizationId: membership.organization.id,
+        createdBy: membership.user.id,
+        updatedBy: membership.user.id,
+        createdAt: now,
+        updatedAt: now,
+      }
+    })
+  },
+
+  async fetchCreatedApontamentos(manager: EntityManager, identifiers: any[]) {
+    const insertedIds = identifiers.map((identifier) => identifier.id)
+
+    return manager.find(Apontamento, {
+      where: { id: In(insertedIds) },
+      relations: {
+        equipamento: true,
+        ocorrencia: true,
+        operador: true,
+        ordemProducao: true,
+      },
     })
   },
 }
