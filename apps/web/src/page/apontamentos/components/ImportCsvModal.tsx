@@ -74,7 +74,7 @@ export const ImportCsvModal = ({
 
   const {
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     reset,
     setValue,
   } = useForm<CreateMultipleApontamentosDTO>({
@@ -83,6 +83,8 @@ export const ImportCsvModal = ({
       apontamentos: [],
     },
   })
+
+  console.log({ errors })
 
   useEffect(() => {
     if (!form?.data || !ocorrencias || !operadores || !equipamentos) {

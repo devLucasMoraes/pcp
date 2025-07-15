@@ -2,19 +2,9 @@
 import { BadRequestError } from '@/http/_errors/bad-request-error'
 
 export function calcularDuracaoEmMinutos(
-  dataInicioStr: string,
-  dataFimStr: string,
+  dataInicio: Date,
+  dataFim: Date,
 ): { duracaoMinutos: number } {
-  const dataInicio = new Date(dataInicioStr)
-  const dataFim = new Date(dataFimStr)
-
-  if (isNaN(dataInicio.getTime())) {
-    throw new BadRequestError('Data de início inválida')
-  }
-  if (isNaN(dataFim.getTime())) {
-    throw new BadRequestError('Data de fim inválida')
-  }
-
   const diferencaEmMs = dataFim.getTime() - dataInicio.getTime()
   const duracaoMinutos = Math.floor(diferencaEmMs / (1000 * 60))
 

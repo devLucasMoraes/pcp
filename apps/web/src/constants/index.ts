@@ -22,4 +22,8 @@ export const tarefaTipo = [
     value: 'INTERVALO',
     label: 'Intervalo',
   },
+  {
+    value: 'PREPARACAO',
+    label: 'Preparação',
+  },
 ]

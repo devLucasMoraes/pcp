@@ -8,6 +8,7 @@ import { entities } from '@/domain/entities'
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
+  useUTC: true,
   host: env.DB_HOST,
   port: env.DB_PORT,
   username: env.DB_USERNAME,

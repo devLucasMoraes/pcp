@@ -12,8 +12,8 @@ const apontamentoSchema = z.object({
   ordemProducao: z.object({
     cod: z.string(),
     descricao: z.string(),
-    tiragem: z.number(),
-    valorServico: z.number(),
+    tiragem: z.coerce.number(),
+    valorServico: z.coerce.number(),
     nomeCliente: z.string(),
   }),
 })

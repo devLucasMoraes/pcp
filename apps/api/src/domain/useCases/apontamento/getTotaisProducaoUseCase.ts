@@ -52,6 +52,8 @@ export const getTotaisProducaoUseCase = {
       },
     })
 
+    console.log({ periodoInicio, periodoFim })
+
     console.log({ apontamentos })
 
     // Inicializa acumuladores

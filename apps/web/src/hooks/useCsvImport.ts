@@ -1,6 +1,7 @@
 import Papa from 'papaparse'
 import { useCallback } from 'react'
 
+import { converterMoedaParaNumber } from '../util/str-utils'
 import { parseDate } from '../util/time-utils'
 
 export interface CsvRow {
@@ -13,7 +14,7 @@ export interface CsvRow {
   codOP: string
   descricao: string
   nomeCliente: string
-  valorServico: string
+  valorServico: number
   operadorNome: string
   equipamentoNome: string
 }
@@ -129,6 +130,8 @@ export const useCsvImport = (
               continue
             }
 
+            console.log({ row })
+
             parsedData.push({
               dataInicio: parseDate(row[0]),
               dataFim: parseDate(row[1]),
@@ -139,7 +142,7 @@ export const useCsvImport = (
               codOP: row[6] || '',
               descricao: row[7] || '',
               nomeCliente: row[8] || '',
-              valorServico: row[9] || '',
+              valorServico: converterMoedaParaNumber(row[9]),
               operadorNome: row[10] || '',
               equipamentoNome: row[11] || '',
             })

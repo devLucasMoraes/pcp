@@ -8,8 +8,16 @@ import { auth } from '@/http/middleware/auth'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 
 const bodySchema = z.object({
-  dataInicio: z.string(),
-  dataFim: z.string(),
+  dataInicio: z
+    .string()
+    .datetime()
+    .transform((val) => new Date(val))
+    .refine((date) => !isNaN(date.getTime()), 'Data inválida'),
+  dataFim: z
+    .string()
+    .datetime()
+    .transform((val) => new Date(val))
+    .refine((date) => !isNaN(date.getTime()), 'Data inválida'),
   qtdeApontada: z.coerce.number(),
   ocorrenciaId: z.string().uuid(),
   operadorId: z.string().uuid(),
