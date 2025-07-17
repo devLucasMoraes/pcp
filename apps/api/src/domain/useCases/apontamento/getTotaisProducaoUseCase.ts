@@ -12,7 +12,6 @@ export const getTotaisProducaoUseCase = {
     periodoInicio: Date,
     periodoFim: Date,
   ) {
-    // Obtém o equipamento com sua rotina de tarefas
     const equipamento = await repository.equipamento.findOne({
       where: {
         id: equipamentoId,
@@ -40,19 +39,25 @@ export const getTotaisProducaoUseCase = {
       }
     })
 
+    const inicioDia = new Date(periodoInicio)
+    inicioDia.setHours(0, 0, 0, 0)
+
+    const fimDia = new Date(periodoFim)
+    fimDia.setHours(23, 59, 59, 999)
+
     // Busca os apontamentos
     const apontamentos = await repository.apontamento.find({
       where: {
         organizationId: membership.organization.id,
         equipamento: { id: equipamentoId },
-        dataInicio: Between(periodoInicio, periodoFim),
+        dataInicio: Between(inicioDia, fimDia),
       },
       relations: {
         ocorrencia: true,
       },
     })
 
-    console.log({ periodoInicio, periodoFim })
+    console.log({ inicioDia, fimDia })
 
     console.log({ apontamentos })
 
