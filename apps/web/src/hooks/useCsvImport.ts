@@ -12,6 +12,8 @@ export interface CsvRow {
   qtdeApontada: number
   tiragem: number
   codOP: string
+  codOperador: string
+  codEquipamento: string
   descricao: string
   nomeCliente: string
   valorServico: number
@@ -30,10 +32,45 @@ export interface UseCsvImportReturn {
   isValidCsvFile: (file: File) => boolean
 }
 
+interface CsvRowData {
+  DataIni: string
+  DataFim: string
+  DURACAO: string
+  OCORRENCIA: string
+  QuantidadeApontada: string
+  TIRAGEM: string
+  CODIGOOP: string
+  DESCRICAOOP: string
+  NOMECLIENTE: string
+  CODIGOOPERADOR: string
+  OPERADOR: string
+  ValorTotal: string
+  CODIGOEQUIPAMENTO: string
+  DESCRICAOEQUIPAMENTO: string
+}
+
 interface PapaParseResult {
-  data: string[][]
+  data: CsvRowData[]
   errors: Papa.ParseError[]
   meta: Papa.ParseMeta
+}
+
+// Mapeamento dos headers do CSV para as propriedades da interface
+const HEADER_MAPPING: Record<string, string> = {
+  DataIni: 'dataInicio',
+  DataFim: 'dataFim',
+  DURACAO: 'duracao',
+  OCORRENCIA: 'ocorrenciaDescricao',
+  QuantidadeApontada: 'qtdeApontada',
+  TIRAGEM: 'tiragem',
+  CODIGOOP: 'codOP',
+  DESCRICAOOP: 'descricao',
+  NOMECLIENTE: 'nomeCliente',
+  CODIGOOPERADOR: 'codOperador',
+  OPERADOR: 'operadorNome',
+  ValorTotal: 'valorServico',
+  CODIGOEQUIPAMENTO: 'codEquipamento',
+  DESCRICAOEQUIPAMENTO: 'equipamentoNome',
 }
 
 export const useCsvImport = (
@@ -78,12 +115,13 @@ export const useCsvImport = (
 
         const results = await new Promise<PapaParseResult>(
           (resolve, reject) => {
-            Papa.parse<string[]>(text, {
-              delimiter: ',',
+            Papa.parse<CsvRowData>(text, {
+              delimiter: ';',
               quoteChar: '"',
               escapeChar: '"',
-              header: false,
+              header: true,
               skipEmptyLines: true,
+              transformHeader: (header: string) => header.trim(),
               transform: (value: string) => value.trim(),
               complete: (results) => resolve(results as PapaParseResult),
               error: (error: Error) => reject(error),
@@ -111,21 +149,35 @@ export const useCsvImport = (
         for (let i = 0; i < results.data.length; i++) {
           const row = results.data[i]
 
-          if (!Array.isArray(row) || row.length < 12) {
-            const error = `Linha ${i + 1}: esperadas 12 colunas, encontradas ${row?.length || 0}`
+          if (!row || typeof row !== 'object') {
+            const error = `Linha ${i + 1}: dados inválidos`
             onValidationError?.(error)
             continue
           }
 
           try {
-            const tiragem = Number(row[5])
+            // Verifica se as colunas essenciais existem
+            const requiredHeaders = Object.keys(HEADER_MAPPING)
+            const missingHeaders = requiredHeaders.filter(
+              (header) => !(header in row),
+            )
+
+            if (missingHeaders.length > 0) {
+              onValidationError?.(
+                `Linha ${i + 1}: colunas ausentes: ${missingHeaders.join(', ')}`,
+              )
+              continue
+            }
+
+            const tiragem = Number(row.TIRAGEM)
             const qtdeApontada = Number(
-              row[4]?.replace(/\./g, '').replace(',', '.'),
+              row.QuantidadeApontada?.replace(/\./g, '').replace(',', '.') ||
+                '0',
             )
 
             if (isNaN(tiragem) || isNaN(qtdeApontada)) {
               onValidationError?.(
-                `Linha ${i + 1}: valores numéricos inválidos (qtdeApontada: ${row[4]}, quantidade: ${row[5]}, código: ${row[6]})`,
+                `Linha ${i + 1}: valores numéricos inválidos (qtdeApontada: ${row.QuantidadeApontada}, tiragem: ${row.TIRAGEM})`,
               )
               continue
             }
@@ -133,18 +185,20 @@ export const useCsvImport = (
             console.log({ row })
 
             parsedData.push({
-              dataInicio: parseDate(row[0]),
-              dataFim: parseDate(row[1]),
-              duracao: row[2] || '',
-              ocorrenciaDescricao: row[3] || '',
+              dataInicio: parseDate(row.DataIni),
+              dataFim: parseDate(row.DataFim),
+              duracao: row.DURACAO || '',
+              ocorrenciaDescricao: row.OCORRENCIA || '',
               qtdeApontada,
               tiragem,
-              codOP: row[6] || '',
-              descricao: row[7] || '',
-              nomeCliente: row[8] || '',
-              valorServico: converterMoedaParaNumber(row[9]),
-              operadorNome: row[10] || '',
-              equipamentoNome: row[11] || '',
+              codOP: row.CODIGOOP || '',
+              descricao: row.DESCRICAOOP || '',
+              nomeCliente: row.NOMECLIENTE || '',
+              codOperador: row.CODIGOOPERADOR || '',
+              operadorNome: row.OPERADOR || '',
+              valorServico: converterMoedaParaNumber(row.ValorTotal || ''),
+              codEquipamento: row.CODIGOEQUIPAMENTO || '',
+              equipamentoNome: row.DESCRICAOEQUIPAMENTO || '',
             })
           } catch (error) {
             const errorMessage =

@@ -26,7 +26,7 @@ const Dashboard = () => {
               equipamentos.map((equipamento) => (
                 <Grid2
                   key={equipamento.id}
-                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                  size={{ xs: 12, sm: 6, md: 4, lg: 4.5 }}
                 >
                   <ProducaoPorEquipamento equipamento={equipamento} />
                 </Grid2>

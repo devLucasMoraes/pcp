@@ -10,7 +10,7 @@ export class OrdemProducao extends BaseAuditEntity {
   @Column({ type: 'varchar', length: 255 })
   cod!: string
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   descricao!: string
 
   @Column({ type: 'numeric' })
